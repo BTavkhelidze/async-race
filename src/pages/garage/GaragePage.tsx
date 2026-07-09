@@ -1,8 +1,9 @@
+import Garage from '../../features/garage/Garage';
+
 export function GaragePage() {
   return (
     <main>
-      <h1>Garage</h1>
-      <p>Garage page content goes here.</p>
+      <Garage />
     </main>
   );
 }

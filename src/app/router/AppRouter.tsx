@@ -7,7 +7,7 @@ export function AppRouter() {
   return (
     <main className='flex  h-screen w-screen bg-gray-100'>
       <AsidePanel />
-      <div className='flex-1 bg-yellow-400 '>
+      <div className='flex-1 bg-[#0A0E17] py-11 px-14  '>
         <Routes>
           <Route path='/' element={<Navigate to='/garage' replace />} />
           <Route path='/garage' element={<GaragePage />} />
