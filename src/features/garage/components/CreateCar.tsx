@@ -1,8 +1,10 @@
+import { forwardRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import type { SubmitHandler } from 'react-hook-form';
 import { createCar } from '../api/garage-crud';
 import { toast } from 'react-toastify';
+import { carQueryKeys } from '../cars-list/api/carQueryKeys';
 
 type Inputs = {
   name: string;
@@ -10,9 +12,8 @@ type Inputs = {
 };
 
 const DEFAULT_CAR_COLOR = '#ffffff';
-const GARAGE_CARS_QUERY_KEY = ['garage', 'cars'] as const;
 
-function CreateCar() {
+const CreateCar = forwardRef<HTMLInputElement>((_, ref) => {
   const queryClient = useQueryClient();
   const { register, handleSubmit, reset, watch } = useForm<Inputs>({
     defaultValues: {
@@ -20,13 +21,14 @@ function CreateCar() {
       color: DEFAULT_CAR_COLOR,
     },
   });
+  const nameInput = register('name');
   const selectedColor = watch('color', DEFAULT_CAR_COLOR);
 
   const createCarMutation = useMutation({
     mutationFn: createCar,
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: GARAGE_CARS_QUERY_KEY,
+        queryKey: carQueryKeys.all,
       });
 
       reset({
@@ -55,11 +57,23 @@ function CreateCar() {
             <input
               type='text'
               placeholder='Car Name'
-              {...register('name')}
-              className='w-[60%] bg-[#0A0E17] border border-[#1F293A] rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#FF5722]/50 focus:ring-1 focus:ring-[#FF5722]/30 transition-all text-slate-200 placeholder-slate-600'
+              {...nameInput}
+              ref={(element) => {
+                nameInput.ref(element);
+
+                if (typeof ref === 'function') {
+                  ref(element);
+                  return;
+                }
+
+                if (ref) {
+                  ref.current = element;
+                }
+              }}
+              className='w-[60%] bg-[#0A0E17] border border-[#535050]  rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#FF5722]/50 focus:ring-1 focus:ring-[#FF5722]/30 transition-all text-slate-200 placeholder-slate-600'
             />
 
-            <div className='relative  rounded-full border-2 w-10 h-10 shrink-0 overflow-hidden  border-white transition-transform active:scale-95'>
+            <div className='relative  rounded-full border-4 w-10 h-10 shrink-0 overflow-hidden border-[#535050] transition-transform active:scale-95'>
               <div
                 className='absolute inset-0 pointer-events-none rounded-lg'
                 style={{ backgroundColor: selectedColor }}
@@ -89,6 +103,8 @@ function CreateCar() {
       </div>
     </div>
   );
-}
+});
+
+CreateCar.displayName = 'CreateCar';
 
 export default CreateCar;

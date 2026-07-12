@@ -5,9 +5,9 @@ import AsidePanel from '../../shared/components/asidePanel/AsidePanel';
 
 export function AppRouter() {
   return (
-    <main className='flex  h-screen w-screen bg-gray-100'>
+    <main className='flex relative  h-screen w-screen bg-gray-100'>
       <AsidePanel />
-      <div className='flex-1 bg-[#0A0E17] py-11 px-14  '>
+      <div className='ml-50 flex-1 bg-[#0A0E17] overflow-x-hidden py-11 px-14  '>
         <Routes>
           <Route path='/' element={<Navigate to='/garage' replace />} />
           <Route path='/garage' element={<GaragePage />} />
