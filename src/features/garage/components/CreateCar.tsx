@@ -1,21 +1,30 @@
 import { forwardRef } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import type { SubmitHandler } from 'react-hook-form';
+import {
+  carFormSchema,
+  DEFAULT_CAR_COLOR,
+  type CarFormValues,
+} from '../../car-form/model/carForm.schema';
 import { createCar } from '../api/garage-crud';
 import { toast } from 'react-toastify';
 import { carQueryKeys } from '../cars-list/api/carQueryKeys';
 
-type Inputs = {
-  name: string;
-  color: string;
-};
-
-const DEFAULT_CAR_COLOR = '#ffffff';
+const CREATE_CAR_NAME_ERROR_ID = 'create-car-name-error';
+const CREATE_CAR_COLOR_ERROR_ID = 'create-car-color-error';
 
 const CreateCar = forwardRef<HTMLInputElement>((_, ref) => {
   const queryClient = useQueryClient();
-  const { register, handleSubmit, reset, watch } = useForm<Inputs>({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm<CarFormValues>({
+    resolver: zodResolver(carFormSchema),
     defaultValues: {
       name: '',
       color: DEFAULT_CAR_COLOR,
@@ -38,7 +47,7 @@ const CreateCar = forwardRef<HTMLInputElement>((_, ref) => {
     },
   });
 
-  const onSubmit: SubmitHandler<Inputs> = (data) => {
+  const onSubmit: SubmitHandler<CarFormValues> = (data) => {
     createCarMutation.mutate(data);
     toast.success('Car added successfully');
   };
@@ -53,36 +62,66 @@ const CreateCar = forwardRef<HTMLInputElement>((_, ref) => {
           className='flex flex-col  gap-3 mb-4'
           onSubmit={handleSubmit(onSubmit)}
         >
-          <div className='flex  gap-10'>
-            <input
-              type='text'
-              placeholder='Car Name'
-              {...nameInput}
-              ref={(element) => {
-                nameInput.ref(element);
-
-                if (typeof ref === 'function') {
-                  ref(element);
-                  return;
-                }
-
-                if (ref) {
-                  ref.current = element;
-                }
-              }}
-              className='w-[60%] bg-[#0A0E17] border border-[#535050]  rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#FF5722]/50 focus:ring-1 focus:ring-[#FF5722]/30 transition-all text-slate-200 placeholder-slate-600'
-            />
-
-            <div className='relative  rounded-full border-4 w-10 h-10 shrink-0 overflow-hidden border-[#535050] transition-transform active:scale-95'>
-              <div
-                className='absolute inset-0 pointer-events-none rounded-lg'
-                style={{ backgroundColor: selectedColor }}
-              />
+          <div className='flex gap-10'>
+            <div className='flex w-[60%] flex-col gap-1'>
               <input
-                type='color'
-                {...register('color', { required: true })}
-                className='absolute inset-0 opacity-0 w-full h-full cursor-pointer rounded-full'
+                type='text'
+                placeholder='Car Name'
+                aria-invalid={Boolean(errors.name)}
+                aria-describedby={
+                  errors.name ? CREATE_CAR_NAME_ERROR_ID : undefined
+                }
+                {...nameInput}
+                ref={(element) => {
+                  nameInput.ref(element);
+
+                  if (typeof ref === 'function') {
+                    ref(element);
+                    return;
+                  }
+
+                  if (ref) {
+                    ref.current = element;
+                  }
+                }}
+                className='w-full bg-[#0A0E17] border border-[#535050] rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#FF5722]/50 focus:ring-1 focus:ring-[#FF5722]/30 transition-all text-slate-200 placeholder-slate-600'
               />
+              {errors.name && (
+                <p
+                  id={CREATE_CAR_NAME_ERROR_ID}
+                  role='alert'
+                  className='text-sm text-red-400'
+                >
+                  {errors.name.message}
+                </p>
+              )}
+            </div>
+
+            <div className='flex flex-col gap-1'>
+              <div className='relative rounded-full border-4 w-10 h-10 shrink-0 overflow-hidden border-[#535050] transition-transform active:scale-95'>
+                <div
+                  className='absolute inset-0 pointer-events-none rounded-lg'
+                  style={{ backgroundColor: selectedColor }}
+                />
+                <input
+                  type='color'
+                  aria-invalid={Boolean(errors.color)}
+                  aria-describedby={
+                    errors.color ? CREATE_CAR_COLOR_ERROR_ID : undefined
+                  }
+                  {...register('color')}
+                  className='absolute inset-0 opacity-0 w-full h-full cursor-pointer rounded-full'
+                />
+              </div>
+              {errors.color && (
+                <p
+                  id={CREATE_CAR_COLOR_ERROR_ID}
+                  role='alert'
+                  className='text-sm text-red-400'
+                >
+                  {errors.color.message}
+                </p>
+              )}
             </div>
           </div>
           {createCarMutation.isError && (

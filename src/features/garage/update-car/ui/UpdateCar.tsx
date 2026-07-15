@@ -4,14 +4,17 @@ import { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import type { SubmitHandler } from 'react-hook-form';
 import { toast } from 'react-toastify';
+import {
+  carFormSchema,
+  DEFAULT_CAR_COLOR,
+  type CarFormValues,
+} from '../../../car-form/model/carForm.schema';
 import { carQueryKeys } from '../../cars-list/api/carQueryKeys';
 import { useSelectedCarStore } from '../../select-car/model/selected-car.store';
 import { useUpdateCarMutation } from '../api/update-car.mutation';
-import {
-  DEFAULT_UPDATE_CAR_COLOR,
-  updateCarSchema,
-} from '../model/update-car.schema';
-import type { UpdateCarFormValues } from '../model/update-car.types';
+
+const UPDATE_CAR_NAME_ERROR_ID = 'update-car-name-error';
+const UPDATE_CAR_COLOR_ERROR_ID = 'update-car-color-error';
 
 function UpdateCar() {
   const queryClient = useQueryClient();
@@ -26,11 +29,11 @@ function UpdateCar() {
     reset,
     control,
     formState: { errors },
-  } = useForm<UpdateCarFormValues>({
-    resolver: zodResolver(updateCarSchema),
+  } = useForm<CarFormValues>({
+    resolver: zodResolver(carFormSchema),
     defaultValues: {
       name: '',
-      color: DEFAULT_UPDATE_CAR_COLOR,
+      color: DEFAULT_CAR_COLOR,
     },
   });
   const updateCarMutation = useUpdateCarMutation();
@@ -39,13 +42,13 @@ function UpdateCar() {
     useWatch({
       control,
       name: 'color',
-    }) ?? DEFAULT_UPDATE_CAR_COLOR;
+    }) ?? DEFAULT_CAR_COLOR;
 
   useEffect(() => {
     if (!selectedCar) {
       reset({
         name: '',
-        color: DEFAULT_UPDATE_CAR_COLOR,
+        color: DEFAULT_CAR_COLOR,
       });
       return;
     }
@@ -56,7 +59,7 @@ function UpdateCar() {
     });
   }, [reset, selectedCar]);
 
-  const onSubmit: SubmitHandler<UpdateCarFormValues> = (data) => {
+  const onSubmit: SubmitHandler<CarFormValues> = (data) => {
     if (!selectedCar) return;
 
     updateCarMutation.mutate(
@@ -72,7 +75,7 @@ function UpdateCar() {
           });
           reset({
             name: '',
-            color: DEFAULT_UPDATE_CAR_COLOR,
+            color: DEFAULT_CAR_COLOR,
           });
           clearSelectedCar();
           toast.success('Car updated successfully');
@@ -92,39 +95,57 @@ function UpdateCar() {
           onSubmit={handleSubmit(onSubmit)}
         >
           <div className='flex gap-10'>
-            <input
-              type='text'
-              placeholder='Select a car'
-              disabled={isFormDisabled}
-              {...register('name')}
-              className='w-[60%] bg-[#0A0E17] border border-[#535050] rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#FF5722]/50 focus:ring-1 focus:ring-[#FF5722]/30 transition-all text-slate-200 placeholder-slate-600 disabled:cursor-not-allowed disabled:opacity-50'
-            />
-
-            <div className='relative rounded-full border-4 w-10 h-10 shrink-0 overflow-hidden border-[#535050] transition-transform active:scale-95'>
-              <div
-                className='absolute inset-0 pointer-events-none rounded-lg'
-                style={{ backgroundColor: selectedColor }}
-              />
+            <div className='flex w-[60%] flex-col gap-1'>
               <input
-                type='color'
+                type='text'
+                placeholder='Select a car'
                 disabled={isFormDisabled}
-                {...register('color')}
-                className='absolute inset-0 opacity-0 w-full h-full cursor-pointer rounded-full disabled:cursor-not-allowed'
+                aria-invalid={Boolean(errors.name)}
+                aria-describedby={
+                  errors.name ? UPDATE_CAR_NAME_ERROR_ID : undefined
+                }
+                {...register('name')}
+                className='w-full bg-[#0A0E17] border border-[#535050] rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#FF5722]/50 focus:ring-1 focus:ring-[#FF5722]/30 transition-all text-slate-200 placeholder-slate-600 disabled:cursor-not-allowed disabled:opacity-50'
               />
+              {errors.name && (
+                <p
+                  id={UPDATE_CAR_NAME_ERROR_ID}
+                  role='alert'
+                  className='text-sm text-red-400'
+                >
+                  {errors.name.message}
+                </p>
+              )}
+            </div>
+
+            <div className='flex flex-col gap-1'>
+              <div className='relative rounded-full border-4 w-10 h-10 shrink-0 overflow-hidden border-[#535050] transition-transform active:scale-95'>
+                <div
+                  className='absolute inset-0 pointer-events-none rounded-lg'
+                  style={{ backgroundColor: selectedColor }}
+                />
+                <input
+                  type='color'
+                  disabled={isFormDisabled}
+                  aria-invalid={Boolean(errors.color)}
+                  aria-describedby={
+                    errors.color ? UPDATE_CAR_COLOR_ERROR_ID : undefined
+                  }
+                  {...register('color')}
+                  className='absolute inset-0 opacity-0 w-full h-full cursor-pointer rounded-full disabled:cursor-not-allowed'
+                />
+              </div>
+              {errors.color && (
+                <p
+                  id={UPDATE_CAR_COLOR_ERROR_ID}
+                  role='alert'
+                  className='text-sm text-red-400'
+                >
+                  {errors.color.message}
+                </p>
+              )}
             </div>
           </div>
-
-          {errors.name && (
-            <p role='alert' className='text-sm text-red-400'>
-              {errors.name.message}
-            </p>
-          )}
-
-          {errors.color && (
-            <p role='alert' className='text-sm text-red-400'>
-              {errors.color.message}
-            </p>
-          )}
 
           {updateCarMutation.isError && (
             <p role='alert' className='text-sm text-red-400'>

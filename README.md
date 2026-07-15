@@ -1,6 +1,6 @@
 # Async Race
 
-**Self-assessment score: 115/400**
+**Self-assessment score: 125/400**
 
 **Deployed application:** `DEPLOYMENT_URL`
 
@@ -305,7 +305,7 @@ Only the frontend is deployed.
 
 The evaluator must run the original mock server locally before opening the deployed frontend.
 
-## Self-assessment Checklist — 115/400
+## Self-assessment Checklist — 125/400
 
 ### UI Deployment
 
@@ -342,7 +342,7 @@ The evaluator must run the original mock server locally before opening the deplo
   - Preserve edit form values.
   - Preserve sorting state.
 
-## Garage View — 40/90
+## Garage View — 50/90
 
 - [ ] **CRUD Operations — 20 points**
   - Create cars.
@@ -371,7 +371,7 @@ The evaluator must run the original mock server locally before opening the deplo
 - [x] **Empty Garage — 10 extra points**
   - Show a user-friendly message.
 
-- [ ] **Empty Garage Page — 10 extra points**
+- [x] **Empty Garage Page — 10 extra points**
   - Move to the previous page after deleting the last car.
 
 ## Winners View — 0/50
@@ -459,5 +459,6 @@ Garage: Partially implemented
 Race: Partially implemented
 Winners: Not implemented
 Deployment: Not completed
-Self-assessment: 115/400
+Self-assessment: 125/400
 ```
+

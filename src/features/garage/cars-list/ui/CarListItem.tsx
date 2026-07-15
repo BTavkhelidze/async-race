@@ -20,10 +20,11 @@ export type CarListItemHandle = {
 
 type CarListItemProps = {
   car: Car;
+  onDeleted?: () => void;
 };
 
 const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
-  ({ car }, ref) => {
+  ({ car, onDeleted }, ref) => {
     const [hasFinished, setHasFinished] = useState(false);
     const [isRacing, setIsRacing] = useState(false);
     const trackRef = useRef<HTMLDivElement>(null);
@@ -156,7 +157,7 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
               Stop
             </button>
             <SelectCarButton car={car} />
-            <DeleteCarButton car={car} />
+            <DeleteCarButton car={car} onDeleted={onDeleted} />
           </div>
         </div>
       </li>

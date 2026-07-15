@@ -1,12 +1,12 @@
 import { useRef, useState } from 'react';
+import { Pagination } from '../../../shared/ui/pagination';
 import { useCarsQuery } from '../cars-list/api/useCarsQuery';
 import CarListItem, {
   type CarListItemHandle,
 } from '../cars-list/ui/CarListItem';
 import EmptyGarageState from '../empty-garage-state/ui/EmptyGarageState';
 
-const CARS_PAGE = 1;
-const CARS_LIMIT = 7;
+const CARS_PER_PAGE = 7;
 const CONTROL_BUTTON_CLASS =
   'rounded-lg px-4 py-2 text-sm font-semibold uppercase tracking-wide shadow-[0_0_15px_rgba(255,87,34,0.18)] transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:border-[#374151] disabled:bg-[#1F293A] disabled:text-slate-500 disabled:shadow-none';
 
@@ -15,12 +15,10 @@ type CarListProps = {
   isGenerateCarsPending?: boolean;
 };
 
-function CarList({
-  onGenerateCarsClick,
-  isGenerateCarsPending,
-}: CarListProps) {
+function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
   const carRefs = useRef<(CarListItemHandle | null)[]>([]);
   const [hasRaceStarted, setHasRaceStarted] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const startAll = () => {
     setHasRaceStarted(true);
@@ -35,11 +33,21 @@ function CarList({
   };
 
   const { data, error, isError, isPending } = useCarsQuery({
-    page: CARS_PAGE,
-    limit: CARS_LIMIT,
+    page: currentPage,
+    limit: CARS_PER_PAGE,
   });
 
   const totalCars = data?.totalCount ?? 0;
+  const totalPages = Math.ceil(totalCars / CARS_PER_PAGE);
+
+  const handlePageChange = (page: number) => {
+    carRefs.current = [];
+    setHasRaceStarted(false);
+    setCurrentPage(page);
+  };
+
+  const shouldMoveToPreviousPageAfterDelete =
+    currentPage > 1 && data?.cars.length === 1;
 
   return (
     <section className='mt-5 rounded-xl border border-[#1F293A] bg-[#151C2C] p-5 shadow-lg'>
@@ -91,12 +99,22 @@ function CarList({
               <CarListItem
                 key={car.id}
                 car={car}
+                onDeleted={
+                  shouldMoveToPreviousPageAfterDelete
+                    ? () => handlePageChange(currentPage - 1)
+                    : undefined
+                }
                 ref={(el) => {
                   carRefs.current[index] = el;
                 }}
               />
             ))}
           </ul>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </>
       )}
     </section>

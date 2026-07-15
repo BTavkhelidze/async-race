@@ -7,8 +7,10 @@ import {
   type GetCarsResponse,
 } from '../../api/garage-crud';
 
-export const useCarsQuery = (params: GetCarsParams) =>
+type CarsQueryParams = Required<Pick<GetCarsParams, 'page' | 'limit'>>;
+
+export const useCarsQuery = (params: CarsQueryParams) =>
   useQuery<GetCarsResponse, Error>({
-    queryKey: carQueryKeys.list(params),
+    queryKey: carQueryKeys.list(params.page, params.limit),
     queryFn: () => getCars(params),
   });

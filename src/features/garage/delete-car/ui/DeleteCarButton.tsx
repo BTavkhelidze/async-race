@@ -7,9 +7,10 @@ import { useDeleteCarMutation } from '../api/delete-car.mutation';
 
 type DeleteCarButtonProps = {
   car: Car;
+  onDeleted?: () => void;
 };
 
-function DeleteCarButton({ car }: DeleteCarButtonProps) {
+function DeleteCarButton({ car, onDeleted }: DeleteCarButtonProps) {
   const queryClient = useQueryClient();
   const selectedCar = useSelectedCarStore((state) => state.selectedCar);
   const clearSelectedCar = useSelectedCarStore(
@@ -27,6 +28,7 @@ function DeleteCarButton({ car }: DeleteCarButtonProps) {
         await queryClient.invalidateQueries({
           queryKey: carQueryKeys.all,
         });
+        onDeleted?.();
         toast.success('Car deleted successfully');
       },
     });
