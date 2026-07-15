@@ -1,5 +1,4 @@
 import {
-  useState,
   useRef,
   useImperativeHandle,
   forwardRef,
@@ -7,160 +6,134 @@ import {
   useCallback,
 } from 'react';
 import type { Car } from '../../api/garage-crud';
+import { useCarEngineStart } from '../hooks/useCarEngineStart';
+import { useCarStartSound } from '../hooks/useCarStartSound';
 import DeleteCarButton from '../../delete-car/ui/DeleteCarButton';
 import SelectCarButton from '../../select-car/ui/SelectCarButton';
 import RaceCar from '../../../../shared/assets/icons/car-svgrepo.svg?react';
-import { useRaceStore } from '../../../../shared/model/race/race.store';
+import { cn } from '../../../../shared/lib/utils';
 
-const RACE_DURATION_MS = 3000;
+type StartRaceOptions = {
+  playSound?: boolean;
+};
 
 export type CarListItemHandle = {
-  startRace: () => void;
+  startRace: (options?: StartRaceOptions) => void;
   stopRace: () => void;
   resetRace: () => void;
+  needsReset: () => boolean;
 };
 
 type CarListItemProps = {
   car: Car;
   onDeleted?: () => void;
+  onResetStateChange?: (carId: number, needsReset: boolean) => void;
 };
 
 const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
-  ({ car, onDeleted }, ref) => {
-    const [hasFinished, setHasFinished] = useState(false);
-    const [isRacing, setIsRacing] = useState(false);
+  ({ car, onDeleted, onResetStateChange }, ref) => {
     const trackRef = useRef<HTMLDivElement>(null);
-    const animationRef = useRef<Animation | null>(null);
-    const hasRegisteredRaceRef = useRef(false);
-    const registerRaceStart = useRaceStore((state) => state.registerRaceStart);
-    const registerRaceEnd = useRaceStore((state) => state.registerRaceEnd);
+    const carRef = useRef<SVGSVGElement | null>(null);
+    const {
+      playStartSound,
+      stopStartSound,
+      waitForMinimumStartDuration,
+    } = useCarStartSound();
 
-    const completeRegisteredRace = useCallback(() => {
-      if (!hasRegisteredRaceRef.current) return;
+    const {
+      isStarting,
+      isRacing,
+      hasFinished,
+      hasDriveFailed,
+      engineError,
+      startCar,
+      stopCar,
+      resetCar,
+    } = useCarEngineStart({
+      carId: car.id,
+      carRef,
+      trackRef,
+      onStartSound: playStartSound,
+      onStopStartSound: stopStartSound,
+      onWaitForMinimumStartDuration: waitForMinimumStartDuration,
+    });
+    const statusText = isStarting
+      ? 'Starting engine...'
+      : engineError
+        ? 'Engine error'
+        : isRacing
+          ? 'Racing'
+          : hasFinished
+            ? 'Finished'
+            : null;
+    const requiresReset =
+      isStarting ||
+      isRacing ||
+      hasFinished ||
+      hasDriveFailed ||
+      Boolean(engineError);
 
-      hasRegisteredRaceRef.current = false;
-      registerRaceEnd();
-    }, [registerRaceEnd]);
+    const startRace = useCallback((options?: StartRaceOptions) => {
+      void startCar({ playSound: options?.playSound ?? false });
+    }, [startCar]);
 
-    const getCarElement = () => {
-      const carElement = trackRef.current?.querySelector('svg');
+    const stopRace = useCallback(() => {
+      stopCar();
+    }, [stopCar]);
 
-      return carElement instanceof SVGElement ? carElement : null;
-    };
+    const resetRace = useCallback(() => {
+      resetCar();
+    }, [resetCar]);
 
-    const resetCarPosition = () => {
-      const carElement = getCarElement();
-
-      if (!carElement) return;
-
-      carElement.getAnimations().forEach((animation) => {
-        animation.cancel();
-      });
-      carElement.style.transform = 'translateX(0px)';
-    };
+    const needsReset = useCallback(() => requiresReset, [requiresReset]);
 
     useImperativeHandle(ref, () => ({
       startRace,
       stopRace,
       resetRace,
+      needsReset,
     }));
 
-    const startRace = () => {
-      if (
-        !trackRef.current ||
-        isRacing ||
-        hasFinished ||
-        hasRegisteredRaceRef.current
-      ) {
-        return;
-      }
-
-      const trackWidth = trackRef.current.offsetWidth;
-      const carWidth = 56;
-      const distance = Math.max(trackWidth - carWidth - 100, 0);
-
-      animationRef.current?.cancel();
-      animationRef.current = null;
-
-      const carEl = getCarElement();
-      if (!carEl) return;
-
-      carEl.style.transform = 'translateX(0px)';
-      hasRegisteredRaceRef.current = true;
-      registerRaceStart();
-      setIsRacing(true);
-      setHasFinished(false);
-
-      const animation = carEl.animate(
-        [
-          { transform: 'translateX(0px)' },
-          { transform: `translateX(${distance}px)` },
-        ],
-        { duration: RACE_DURATION_MS, fill: 'forwards', easing: 'linear' },
-      );
-
-      animationRef.current = animation;
-
-      animation.finished
-        .then(() => {
-          if (animationRef.current !== animation) return;
-
-          carEl.style.transform = `translateX(${distance}px)`;
-          animationRef.current = null;
-          completeRegisteredRace();
-          setIsRacing(false);
-          setHasFinished(true);
-        })
-        .catch(() => {
-          if (animationRef.current !== animation) return;
-
-          animationRef.current = null;
-          completeRegisteredRace();
-          setIsRacing(false);
-        });
-    };
-
-    const stopRace = () => {
-      animationRef.current?.cancel();
-      animationRef.current = null;
-
-      resetCarPosition();
-      completeRegisteredRace();
-
-      setIsRacing(false);
-      setHasFinished(false);
-    };
-
-    const resetRace = () => {
-      animationRef.current?.cancel();
-      animationRef.current = null;
-
-      resetCarPosition();
-      completeRegisteredRace();
-
-      setIsRacing(false);
-      setHasFinished(false);
-    };
-
     useEffect(() => {
-      return () => {
-        animationRef.current?.cancel();
-        completeRegisteredRace();
-      };
-    }, [completeRegisteredRace]);
+      onResetStateChange?.(car.id, requiresReset);
+    }, [car.id, onResetStateChange, requiresReset]);
 
     return (
       <li className='rounded-lg border border-[#1F293A] bg-[#0A0E17] px-2 py-2 text-sm text-slate-200'>
         <div
           ref={trackRef}
+          aria-busy={isStarting}
           className='relative flex justify-between h-20 px-3 bg-[#111827] rounded-md overflow-hidden border border-[#1F293A]'
         >
-          <span className='text-xs text-[#7e7d7d] font-medium truncate flex items-center ml-10 border-l-2 border-dashed pl-6 border-white'>
-            {car.name}
-          </span>
+          <div className='ml-10 flex min-w-0 flex-col justify-center border-l-2 border-dashed border-white pl-6'>
+            <span
+              className={cn(
+                'truncate text-xs font-medium text-[#7e7d7d]',
+                engineError && 'text-slate-500 opacity-60',
+              )}
+            >
+              {car.name}
+            </span>
+            {statusText && (
+              <span
+                className={cn(
+                  'mt-1 text-[11px] text-slate-400',
+                  isStarting && 'animate-pulse text-[#FFB199]',
+                  engineError && 'text-red-400',
+                )}
+              >
+                {statusText}
+              </span>
+            )}
+          </div>
 
           <RaceCar
-            className='absolute bottom-2 left-0 h-8 w-14'
+            ref={carRef}
+            className={cn(
+              'absolute bottom-2 left-0 h-8 w-14',
+              isStarting && 'animate-pulse',
+              engineError && 'opacity-60',
+            )}
             style={{ fill: car.color }}
           />
           <div className='absolute right-37 top-0 h-full border-l-2 border-dashed border-[#FF5722]/70' />
@@ -168,16 +141,25 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
           <div className='z-10 my-2 grid grid-cols-2 gap-1 self-center'>
             <button
               type='button'
-              onClick={startRace}
-              disabled={isRacing || hasFinished}
+              onClick={() => void startCar()}
+              disabled={
+                isStarting ||
+                isRacing ||
+                hasFinished ||
+                hasDriveFailed ||
+                Boolean(engineError)
+              }
+              aria-busy={isStarting}
               className='h-7 min-w-10 px-2 text-xs border border-[#FF5722]/70 rounded-md disabled:opacity-50 transition-colors'
             >
-              Start
+              {isStarting ? 'Starting...' : 'Start'}
             </button>
             <button
               type='button'
               onClick={stopRace}
-              disabled={!isRacing}
+              disabled={
+                !isRacing && !hasDriveFailed && !hasFinished && !engineError
+              }
               className='h-7 min-w-10 px-2 text-xs border border-[#FF5722]/70 rounded-md disabled:opacity-50 transition-colors'
             >
               Stop
@@ -185,6 +167,14 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
             <SelectCarButton car={car} />
             <DeleteCarButton car={car} onDeleted={onDeleted} />
           </div>
+          {engineError && (
+            <p
+              role='alert'
+              className='absolute bottom-1 left-3 text-xs text-red-400'
+            >
+              {engineError}
+            </p>
+          )}
         </div>
       </li>
     );

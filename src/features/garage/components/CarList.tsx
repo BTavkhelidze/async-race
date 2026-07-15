@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Pagination } from '../../../shared/ui/pagination';
 import { useRaceStore } from '../../../shared/model/race/race.store';
 import { useCarsQuery } from '../cars-list/api/useCarsQuery';
+import { useCarStartSound } from '../cars-list/hooks/useCarStartSound';
 import CarListItem, {
   type CarListItemHandle,
 } from '../cars-list/ui/CarListItem';
@@ -18,22 +19,52 @@ type CarListProps = {
 
 function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
   const carRefs = useRef<(CarListItemHandle | null)[]>([]);
+  const raceAllSoundRunIdRef = useRef(0);
   const [hasRaceStarted, setHasRaceStarted] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [carsNeedingReset, setCarsNeedingReset] = useState<Set<number>>(
+    () => new Set(),
+  );
   const isRaceRunning = useRaceStore((state) => state.isRaceRunning);
   const resetRaceState = useRaceStore((state) => state.resetRaceState);
+  const canResetRace = carsNeedingReset.size > 0;
+  const {
+    playStartSoundForMinimumDuration,
+    stopStartSound: stopRaceAllSound,
+  } = useCarStartSound();
+
+  const playRaceAllSound = () => {
+    const runId = raceAllSoundRunIdRef.current + 1;
+    raceAllSoundRunIdRef.current = runId;
+
+    void playStartSoundForMinimumDuration().finally(() => {
+      if (raceAllSoundRunIdRef.current === runId) {
+        stopRaceAllSound();
+      }
+    });
+  };
+
+  const stopRaceAllStartSound = () => {
+    raceAllSoundRunIdRef.current += 1;
+    stopRaceAllSound();
+  };
 
   const startAll = () => {
     if (isRaceRunning) return;
 
+    playRaceAllSound();
     setHasRaceStarted(true);
-    carRefs.current.forEach((carRef) => carRef?.startRace());
+    carRefs.current.forEach((carRef) => {
+      carRef?.startRace({ playSound: false });
+    });
   };
 
   const resetAll = () => {
+    stopRaceAllStartSound();
     carRefs.current.forEach((carRef) => {
       carRef?.resetRace();
     });
+    setCarsNeedingReset(new Set());
     setHasRaceStarted(false);
     resetRaceState();
   };
@@ -50,9 +81,27 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
     if (isRaceRunning) return;
 
     carRefs.current = [];
+    setCarsNeedingReset(new Set());
     setHasRaceStarted(false);
     setCurrentPage(page);
   };
+
+  const handleResetStateChange = useCallback(
+    (carId: number, needsReset: boolean) => {
+      setCarsNeedingReset((current) => {
+        const next = new Set(current);
+
+        if (needsReset) {
+          next.add(carId);
+        } else {
+          next.delete(carId);
+        }
+
+        return next;
+      });
+    },
+    [],
+  );
 
   const shouldMoveToPreviousPageAfterDelete =
     currentPage > 1 && data?.cars.length === 1;
@@ -96,7 +145,7 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
             <button
               type='button'
               onClick={resetAll}
-              disabled={!hasRaceStarted && !isRaceRunning}
+              disabled={!canResetRace}
               className={`${CONTROL_BUTTON_CLASS} border border-[#FF5722]/70 bg-[#0A0E17] text-[#FFB199] hover:border-[#FF5722] hover:text-white`}
             >
               Reset
@@ -112,6 +161,7 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
                     ? () => handlePageChange(currentPage - 1)
                     : undefined
                 }
+                onResetStateChange={handleResetStateChange}
                 ref={(el) => {
                   carRefs.current[index] = el;
                 }}

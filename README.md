@@ -1,6 +1,6 @@
 # Async Race
 
-**Self-assessment score: 195/400**
+**Self-assessment score: 215/400**
 
 **Deployed application:** `DEPLOYMENT_URL`
 
@@ -305,7 +305,7 @@ Only the frontend is deployed.
 
 The evaluator must run the original mock server locally before opening the deployed frontend.
 
-## Self-assessment Checklist — 195/400
+## Self-assessment Checklist — 215/400
 
 ### UI Deployment
 
@@ -397,9 +397,9 @@ The evaluator must run the original mock server locally before opening the deplo
   - Support ascending order.
   - Support descending order.
 
-## Race — 80/170
+## Race — 100/170
 
-- [ ] **Start Engine Animation — 20 points**
+- [x] **Start Engine Animation — 20 points**
   - Start engine.
   - Wait for response.
   - Animate car.
@@ -459,6 +459,6 @@ Garage: Partially implemented
 Race: Partially implemented
 Winners: Not implemented
 Deployment: Not completed
-Self-assessment: 195/400
+Self-assessment: 215/400
 ```
 

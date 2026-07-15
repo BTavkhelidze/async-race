@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export type Car = {
   id: number;
@@ -27,7 +27,7 @@ const getResponseErrorDetails = async (response: Response): Promise<string> => {
   return responseText ? ` Response body: ${responseText}` : '';
 };
 
-const ensureSuccessfulResponse = async (
+export const ensureSuccessfulResponse = async (
   response: Response,
   message: string,
 ): Promise<void> => {
