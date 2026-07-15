@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
+import { useRaceStore } from '../../../shared/model/race/race.store';
 import { createCar, type Car } from '../../garage/api/garage-crud';
 import { carQueryKeys } from '../../garage/cars-list/api/carQueryKeys';
 import { generateRandomCars } from '../lib/generateRandomCars';
@@ -28,6 +29,7 @@ function getRejectedReasonMessage(reason: unknown): string {
 
 function GenerateCarsButton() {
   const queryClient = useQueryClient();
+  const isRaceRunning = useRaceStore((state) => state.isRaceRunning);
 
   const generateCarsMutation = useMutation<GenerateCarsResult, Error>({
     mutationFn: async () => {
@@ -74,6 +76,11 @@ function GenerateCarsButton() {
       });
     },
   });
+  const handleGenerateCarsClick = () => {
+    if (isRaceRunning) return;
+
+    generateCarsMutation.mutate();
+  };
 
   return (
     <div className='bg-[#151C2C] mt-5 border border-[#1F293A] p-5 rounded-xl shadow-lg'>
@@ -82,8 +89,8 @@ function GenerateCarsButton() {
       </h3>
       <button
         type='button'
-        onClick={() => generateCarsMutation.mutate()}
-        disabled={generateCarsMutation.isPending}
+        onClick={handleGenerateCarsClick}
+        disabled={generateCarsMutation.isPending || isRaceRunning}
         className={GENERATE_CARS_BUTTON_CLASS}
       >
         {generateCarsMutation.isPending ? 'Generating...' : 'Generate 100 Cars'}

@@ -4,6 +4,7 @@ type PaginationProps = {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  disabled?: boolean;
 };
 
 const PAGINATION_BUTTON_CLASS =
@@ -13,21 +14,29 @@ export function Pagination({
   currentPage,
   totalPages,
   onPageChange,
+  disabled = false,
 }: PaginationProps) {
+  if (totalPages <= 1) return null;
+
   const pageNumbers = Array.from(
     { length: totalPages },
     (_, index) => index + 1,
   );
   const isFirstPage = currentPage === 1;
   const isLastPage = currentPage === totalPages;
+  const handlePageClick = (page: number) => {
+    if (disabled) return;
+
+    onPageChange(page);
+  };
 
   return (
     <nav className='mt-4' aria-label='Pagination'>
       <div className='flex flex-wrap items-center justify-center gap-2 sm:justify-end'>
         <button
           type='button'
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={isFirstPage}
+          onClick={() => handlePageClick(currentPage - 1)}
+          disabled={disabled || isFirstPage}
           aria-label='Go to previous page'
           className={`${PAGINATION_BUTTON_CLASS} border-[#374151] bg-[#0A0E17] text-slate-200 hover:border-[#FF5722] hover:text-white`}
         >
@@ -42,7 +51,8 @@ export function Pagination({
               <button
                 key={pageNumber}
                 type='button'
-                onClick={() => onPageChange(pageNumber)}
+                onClick={() => handlePageClick(pageNumber)}
+                disabled={disabled}
                 aria-label={`Go to page ${pageNumber}`}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
@@ -60,8 +70,8 @@ export function Pagination({
 
         <button
           type='button'
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={isLastPage}
+          onClick={() => handlePageClick(currentPage + 1)}
+          disabled={disabled || isLastPage}
           aria-label='Go to next page'
           className={`${PAGINATION_BUTTON_CLASS} border-[#374151] bg-[#0A0E17] text-slate-200 hover:border-[#FF5722] hover:text-white`}
         >

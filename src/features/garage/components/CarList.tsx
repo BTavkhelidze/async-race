@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { Pagination } from '../../../shared/ui/pagination';
+import { useRaceStore } from '../../../shared/model/race/race.store';
 import { useCarsQuery } from '../cars-list/api/useCarsQuery';
 import CarListItem, {
   type CarListItemHandle,
@@ -19,8 +20,12 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
   const carRefs = useRef<(CarListItemHandle | null)[]>([]);
   const [hasRaceStarted, setHasRaceStarted] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const isRaceRunning = useRaceStore((state) => state.isRaceRunning);
+  const resetRaceState = useRaceStore((state) => state.resetRaceState);
 
   const startAll = () => {
+    if (isRaceRunning) return;
+
     setHasRaceStarted(true);
     carRefs.current.forEach((carRef) => carRef?.startRace());
   };
@@ -30,6 +35,7 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
       carRef?.resetRace();
     });
     setHasRaceStarted(false);
+    resetRaceState();
   };
 
   const { data, error, isError, isPending } = useCarsQuery({
@@ -41,6 +47,8 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
   const totalPages = Math.ceil(totalCars / CARS_PER_PAGE);
 
   const handlePageChange = (page: number) => {
+    if (isRaceRunning) return;
+
     carRefs.current = [];
     setHasRaceStarted(false);
     setCurrentPage(page);
@@ -79,7 +87,7 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
             <button
               type='button'
               onClick={startAll}
-              disabled={hasRaceStarted}
+              disabled={hasRaceStarted || isRaceRunning}
               className={`${CONTROL_BUTTON_CLASS} border border-[#FF5722] bg-[#FF5722] text-white hover:bg-[#E64A19]`}
             >
               Race All Cars
@@ -88,7 +96,7 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
             <button
               type='button'
               onClick={resetAll}
-              disabled={!hasRaceStarted}
+              disabled={!hasRaceStarted && !isRaceRunning}
               className={`${CONTROL_BUTTON_CLASS} border border-[#FF5722]/70 bg-[#0A0E17] text-[#FFB199] hover:border-[#FF5722] hover:text-white`}
             >
               Reset
@@ -114,6 +122,7 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={handlePageChange}
+            disabled={isRaceRunning}
           />
         </>
       )}

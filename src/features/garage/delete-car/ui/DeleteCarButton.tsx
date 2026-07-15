@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
+import { useRaceStore } from '../../../../shared/model/race/race.store';
 import type { Car } from '../../api/garage-crud';
 import { carQueryKeys } from '../../cars-list/api/carQueryKeys';
 import { useSelectedCarStore } from '../../select-car/model/selected-car.store';
@@ -16,9 +17,12 @@ function DeleteCarButton({ car, onDeleted }: DeleteCarButtonProps) {
   const clearSelectedCar = useSelectedCarStore(
     (state) => state.clearSelectedCar,
   );
+  const isRaceRunning = useRaceStore((state) => state.isRaceRunning);
   const deleteCarMutation = useDeleteCarMutation();
 
   const handleDelete = () => {
+    if (isRaceRunning) return;
+
     deleteCarMutation.mutate(car.id, {
       onSuccess: async () => {
         if (selectedCar?.id === car.id) {
@@ -38,7 +42,7 @@ function DeleteCarButton({ car, onDeleted }: DeleteCarButtonProps) {
     <button
       type='button'
       onClick={handleDelete}
-      disabled={deleteCarMutation.isPending}
+      disabled={deleteCarMutation.isPending || isRaceRunning}
       className='h-7 min-w-10 px-2 text-xs font-semibold transition-colors rounded-md border border-red-400/70 text-red-200 hover:border-red-400 hover:text-white disabled:cursor-not-allowed disabled:opacity-50'
     >
       {deleteCarMutation.isPending ? 'Deleting...' : 'Delete'}

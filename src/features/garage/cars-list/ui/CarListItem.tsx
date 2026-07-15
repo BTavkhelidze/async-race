@@ -4,11 +4,13 @@ import {
   useImperativeHandle,
   forwardRef,
   useEffect,
+  useCallback,
 } from 'react';
 import type { Car } from '../../api/garage-crud';
 import DeleteCarButton from '../../delete-car/ui/DeleteCarButton';
 import SelectCarButton from '../../select-car/ui/SelectCarButton';
 import RaceCar from '../../../../shared/assets/icons/car-svgrepo.svg?react';
+import { useRaceStore } from '../../../../shared/model/race/race.store';
 
 const RACE_DURATION_MS = 3000;
 
@@ -29,6 +31,16 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
     const [isRacing, setIsRacing] = useState(false);
     const trackRef = useRef<HTMLDivElement>(null);
     const animationRef = useRef<Animation | null>(null);
+    const hasRegisteredRaceRef = useRef(false);
+    const registerRaceStart = useRaceStore((state) => state.registerRaceStart);
+    const registerRaceEnd = useRaceStore((state) => state.registerRaceEnd);
+
+    const completeRegisteredRace = useCallback(() => {
+      if (!hasRegisteredRaceRef.current) return;
+
+      hasRegisteredRaceRef.current = false;
+      registerRaceEnd();
+    }, [registerRaceEnd]);
 
     const getCarElement = () => {
       const carElement = trackRef.current?.querySelector('svg');
@@ -54,7 +66,14 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
     }));
 
     const startRace = () => {
-      if (!trackRef.current || isRacing || hasFinished) return;
+      if (
+        !trackRef.current ||
+        isRacing ||
+        hasFinished ||
+        hasRegisteredRaceRef.current
+      ) {
+        return;
+      }
 
       const trackWidth = trackRef.current.offsetWidth;
       const carWidth = 56;
@@ -67,6 +86,8 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
       if (!carEl) return;
 
       carEl.style.transform = 'translateX(0px)';
+      hasRegisteredRaceRef.current = true;
+      registerRaceStart();
       setIsRacing(true);
       setHasFinished(false);
 
@@ -86,6 +107,7 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
 
           carEl.style.transform = `translateX(${distance}px)`;
           animationRef.current = null;
+          completeRegisteredRace();
           setIsRacing(false);
           setHasFinished(true);
         })
@@ -93,6 +115,7 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
           if (animationRef.current !== animation) return;
 
           animationRef.current = null;
+          completeRegisteredRace();
           setIsRacing(false);
         });
     };
@@ -102,6 +125,7 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
       animationRef.current = null;
 
       resetCarPosition();
+      completeRegisteredRace();
 
       setIsRacing(false);
       setHasFinished(false);
@@ -112,6 +136,7 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
       animationRef.current = null;
 
       resetCarPosition();
+      completeRegisteredRace();
 
       setIsRacing(false);
       setHasFinished(false);
@@ -120,8 +145,9 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
     useEffect(() => {
       return () => {
         animationRef.current?.cancel();
+        completeRegisteredRace();
       };
-    }, []);
+    }, [completeRegisteredRace]);
 
     return (
       <li className='rounded-lg border border-[#1F293A] bg-[#0A0E17] px-2 py-2 text-sm text-slate-200'>

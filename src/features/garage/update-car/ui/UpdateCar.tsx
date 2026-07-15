@@ -9,6 +9,7 @@ import {
   DEFAULT_CAR_COLOR,
   type CarFormValues,
 } from '../../../car-form/model/carForm.schema';
+import { useRaceStore } from '../../../../shared/model/race/race.store';
 import { carQueryKeys } from '../../cars-list/api/carQueryKeys';
 import { useSelectedCarStore } from '../../select-car/model/selected-car.store';
 import { useUpdateCarMutation } from '../api/update-car.mutation';
@@ -23,6 +24,7 @@ function UpdateCar() {
   const clearSelectedCar = useSelectedCarStore(
     (state) => state.clearSelectedCar,
   );
+  const isRaceRunning = useRaceStore((state) => state.isRaceRunning);
   const {
     register,
     handleSubmit,
@@ -37,7 +39,8 @@ function UpdateCar() {
     },
   });
   const updateCarMutation = useUpdateCarMutation();
-  const isFormDisabled = !selectedCar || updateCarMutation.isPending;
+  const isFormDisabled =
+    !selectedCar || updateCarMutation.isPending || isRaceRunning;
   const selectedColor =
     useWatch({
       control,
@@ -60,6 +63,7 @@ function UpdateCar() {
   }, [reset, selectedCar]);
 
   const onSubmit: SubmitHandler<CarFormValues> = (data) => {
+    if (isRaceRunning) return;
     if (!selectedCar) return;
 
     updateCarMutation.mutate(

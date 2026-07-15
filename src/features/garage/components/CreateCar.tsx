@@ -8,6 +8,7 @@ import {
   DEFAULT_CAR_COLOR,
   type CarFormValues,
 } from '../../car-form/model/carForm.schema';
+import { useRaceStore } from '../../../shared/model/race/race.store';
 import { createCar } from '../api/garage-crud';
 import { toast } from 'react-toastify';
 import { carQueryKeys } from '../cars-list/api/carQueryKeys';
@@ -17,6 +18,7 @@ const CREATE_CAR_COLOR_ERROR_ID = 'create-car-color-error';
 
 const CreateCar = forwardRef<HTMLInputElement>((_, ref) => {
   const queryClient = useQueryClient();
+  const isRaceRunning = useRaceStore((state) => state.isRaceRunning);
   const {
     register,
     handleSubmit,
@@ -48,6 +50,8 @@ const CreateCar = forwardRef<HTMLInputElement>((_, ref) => {
   });
 
   const onSubmit: SubmitHandler<CarFormValues> = (data) => {
+    if (isRaceRunning) return;
+
     createCarMutation.mutate(data);
     toast.success('Car added successfully');
   };
@@ -133,7 +137,7 @@ const CreateCar = forwardRef<HTMLInputElement>((_, ref) => {
           )}
           <button
             type='submit'
-            disabled={createCarMutation.isPending}
+            disabled={createCarMutation.isPending || isRaceRunning}
             className='w-full bg-[#FF5722] hover:bg-[#E64A19] disabled:cursor-not-allowed disabled:opacity-70 text-white font-semibold text-sm py-2.5 px-4 rounded-lg shadow-[0_0_15px_rgba(255,87,34,0.2)] transition-all duration-200 active:scale-[0.99]'
           >
             {createCarMutation.isPending ? 'Creating...' : 'Create'}
