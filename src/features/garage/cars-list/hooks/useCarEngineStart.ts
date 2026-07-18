@@ -19,7 +19,7 @@ type UseCarEngineStartParams = {
   carId: number;
   carRef: RefObject<SVGSVGElement | null>;
   trackRef: RefObject<HTMLDivElement | null>;
-  finishLineOffset: number;
+  finishLineRef: RefObject<HTMLDivElement | null>;
   onRaceFinish?: (carId: number, raceTimeMs: number) => void;
   onDriveStart?: () => void;
   onStartSound: () => void;
@@ -44,7 +44,7 @@ export function useCarEngineStart({
   carId,
   carRef,
   trackRef,
-  finishLineOffset,
+  finishLineRef,
   onRaceFinish,
   onDriveStart,
   onStartSound,
@@ -65,6 +65,7 @@ export function useCarEngineStart({
   const activeRunIdRef = useRef(0);
   const hasRegisteredRaceRef = useRef(false);
   const isMountedRef = useRef(true);
+  const trackWidthRef = useRef(0);
   const registerRaceStart = useRaceStore((state) => state.registerRaceStart);
   const registerRaceEnd = useRaceStore((state) => state.registerRaceEnd);
 
@@ -188,10 +189,21 @@ export function useCarEngineStart({
           throw new Error('Invalid engine response');
         }
 
+        const finishLineElement = finishLineRef.current;
+        const finishLineWidth =
+          finishLineElement?.getBoundingClientRect().width ?? 0;
+        const trackWidth = trackElement.clientWidth || trackWidthRef.current;
+        const safeOffset = finishLineElement
+          ? Math.max(
+              trackWidth - finishLineElement.offsetLeft - finishLineWidth,
+              0,
+            )
+          : 0;
         const travelDistance = calculateTravelDistance(
-          trackElement.offsetWidth,
+          trackWidth,
           carElement.getBoundingClientRect().width,
-          finishLineOffset,
+          finishLineWidth,
+          safeOffset,
         );
 
         if (playDrivingSound) {
@@ -283,7 +295,7 @@ export function useCarEngineStart({
       hasFinished,
       hasRaceStopped,
       engineError,
-      finishLineOffset,
+      finishLineRef,
       isCurrentRun,
       isRacing,
       isStarting,
@@ -360,6 +372,24 @@ export function useCarEngineStart({
     onStopAllRaceSounds,
     onStopStartSound,
   ]);
+
+  useEffect(() => {
+    const trackElement = trackRef.current;
+
+    if (!trackElement || typeof ResizeObserver === 'undefined') return;
+
+    trackWidthRef.current = trackElement.clientWidth;
+
+    const resizeObserver = new ResizeObserver(() => {
+      trackWidthRef.current = trackElement.clientWidth;
+    });
+
+    resizeObserver.observe(trackElement);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [trackRef]);
 
   return {
     isStarting,
