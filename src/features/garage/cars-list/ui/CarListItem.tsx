@@ -40,14 +40,13 @@ type CarListItemProps = {
   onRaceDriveStart?: () => void;
 };
 
-const FINISH_LINE_OFFSET_PX = 150;
-
 const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
   (
     { car, onDeleted, onResetStateChange, onRaceFinish, onRaceDriveStart },
     ref,
   ) => {
     const trackRef = useRef<HTMLDivElement>(null);
+    const finishLineRef = useRef<HTMLDivElement>(null);
     const carRef = useRef<SVGSVGElement | null>(null);
     const { playStartSound, stopStartSound, waitForMinimumStartDuration } =
       useCarStartSound();
@@ -73,7 +72,7 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
       carId: car.id,
       carRef,
       trackRef,
-      finishLineOffset: FINISH_LINE_OFFSET_PX,
+      finishLineRef,
       onRaceFinish: (carId, raceTimeMs) => {
         onRaceFinish?.({
           carId,
@@ -145,13 +144,13 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
     }, [car.id, onResetStateChange, requiresReset]);
 
     return (
-      <li className='rounded-lg border border-[#1F293A] bg-[#0A0E17] px-2 py-2 text-sm text-slate-200'>
+      <li className='rounded-lg border border-[#1F293A] bg-[#0A0E17] px-2 py-2 text-sm text-slate-200 max-[1039px]:min-w-0'>
         <div
           ref={trackRef}
           aria-busy={isStarting}
-          className='relative flex justify-between h-20 px-3 bg-[#111827] rounded-md overflow-hidden border border-[#1F293A]'
+          className='relative flex h-20 justify-between overflow-hidden rounded-md border border-[#1F293A] bg-[#111827] px-3 max-[1039px]:h-auto max-[1039px]:min-h-32 max-[1039px]:min-w-0 max-[1039px]:flex-col max-[1039px]:items-stretch max-[1039px]:justify-start max-[1039px]:gap-2 max-[1039px]:px-2 max-[1039px]:pb-12'
         >
-          <div className='ml-10 flex min-w-0 flex-col justify-center border-l-2 border-dashed border-white pl-6'>
+          <div className='ml-10 flex min-w-0 flex-col justify-center border-l-2 border-dashed border-white pl-6 max-[1039px]:ml-0 max-[1039px]:pl-3'>
             <span
               className={cn(
                 'truncate text-xs font-medium text-[#7e7d7d]',
@@ -163,7 +162,7 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
             {statusText && (
               <span
                 className={cn(
-                  'mt-1 text-[11px] text-slate-400',
+                  'mt-1 text-[11px] text-slate-400 max-[1039px]:truncate',
                   isStarting && 'animate-pulse text-[#FFB199]',
                   engineError && 'text-red-400',
                 )}
@@ -184,11 +183,10 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
           />
 
           <div
-            className='absolute top-0 h-full  '
-            style={{ right: FINISH_LINE_OFFSET_PX }}
+            ref={finishLineRef}
+            className='absolute top-0 right-48 h-full border-l-2 border-dashed border-[#FF5722]/70 max-[1039px]:right-3'
           />
-          <div className='absolute top-0 h-full right-48 border-l-2 border-dashed border-[#FF5722]/70' />
-          <div className='z-10 my-2 grid grid-cols-2 gap-1 self-center'>
+          <div className='z-10 my-2 grid grid-cols-2 gap-1 self-center max-[1039px]:my-0 max-[1039px]:grid-cols-4 max-[1039px]:self-start max-[560px]:grid-cols-2'>
             <button
               type='button'
               onClick={() => void startCar()}

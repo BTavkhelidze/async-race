@@ -27,7 +27,7 @@ function Sidebar() {
               }}
               className={({ isActive }) =>
                 cn(
-                  'mb-2 flex cursor-pointer items-center gap-2 rounded-xl border-2 pl-2 text-base font-medium transition-colors duration-200 ease-in-out',
+                  'mb-2 flex cursor-pointer items-center gap-2 rounded-xl border-2 pl-2 text-base font-medium transition-colors duration-200 ease-in-out max-[1039px]:min-w-0 max-[1039px]:px-1 max-[1039px]:py-1.5 max-[1039px]:text-sm',
                   isRaceRunning &&
                     'cursor-not-allowed opacity-50 hover:border-transparent hover:bg-transparent hover:text-[#94A3B8]',
                   !isRaceRunning &&
@@ -41,7 +41,7 @@ function Sidebar() {
               }
             >
               <Icon className='h-4 w-5 shrink-0' aria-hidden='true' />
-              <span>{name}</span>
+              <span className='max-[1039px]:truncate'>{name}</span>
             </NavLink>
           </li>
         ))}

@@ -89,7 +89,7 @@ function UpdateCar() {
   };
 
   return (
-    <div className='bg-[#151C2C] mt-5 border border-[#1F293A] p-5 rounded-xl flex flex-col justify-between shadow-lg'>
+    <div className='bg-[#151C2C] mt-5 border border-[#1F293A] p-5 rounded-xl flex flex-col justify-between shadow-lg max-[1039px]:w-full max-[1039px]:min-w-0 max-[1039px]:p-4'>
       <div>
         <h3 className='text-lg font-semibold tracking-wide text-slate-200 mb-4'>
           Update Car
@@ -98,8 +98,8 @@ function UpdateCar() {
           className='flex flex-col gap-3 mb-4'
           onSubmit={handleSubmit(onSubmit)}
         >
-          <div className='flex gap-10'>
-            <div className='flex w-[60%] flex-col gap-1'>
+          <div className='flex gap-10 max-[1039px]:min-w-0 max-[1039px]:flex-wrap max-[1039px]:gap-3'>
+            <div className='flex w-[60%] flex-col gap-1 max-[1039px]:w-auto max-[1039px]:min-w-0 max-[1039px]:flex-1'>
               <input
                 type='text'
                 placeholder='Select a car'
