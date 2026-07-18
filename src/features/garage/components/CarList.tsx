@@ -9,6 +9,7 @@ import CarListItem, {
   type CarListItemHandle,
 } from '../cars-list/ui/CarListItem';
 import EmptyGarageState from '../empty-garage-state/ui/EmptyGarageState';
+import { useGarageUiStore } from '../model/garage-ui.store';
 
 const CARS_PER_PAGE = 7;
 const CONTROL_BUTTON_CLASS =
@@ -37,11 +38,12 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
   const hasRaceAllFinishRef = useRef(false);
   const hasRaceAllDrivingSoundStartedRef = useRef(false);
   const [hasRaceStarted, setHasRaceStarted] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
   const [carsNeedingReset, setCarsNeedingReset] = useState<Set<number>>(
     () => new Set(),
   );
   const [winnerPopup, setWinnerPopup] = useState<WinnerPopup | null>(null);
+  const currentPage = useGarageUiStore((state) => state.currentPage);
+  const setCurrentPage = useGarageUiStore((state) => state.setCurrentPage);
   const isRaceRunning = useRaceStore((state) => state.isRaceRunning);
   const resetRaceState = useRaceStore((state) => state.resetRaceState);
   const canResetRace = carsNeedingReset.size > 0;
@@ -107,6 +109,13 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
 
   const totalCars = data?.totalCount ?? 0;
   const totalPages = Math.ceil(totalCars / CARS_PER_PAGE);
+
+  useEffect(() => {
+    if (isPending || isError || totalCars === 0) return;
+    if (currentPage <= totalPages) return;
+
+    setCurrentPage(totalPages);
+  }, [currentPage, isError, isPending, setCurrentPage, totalCars, totalPages]);
 
   const handlePageChange = (page: number) => {
     if (isRaceRunning) return;

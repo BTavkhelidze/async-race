@@ -1,29 +1,33 @@
 import { useRaceStore } from '../../../../shared/model/race/race.store';
 import type { Car } from '../../api/garage-crud';
-import { useSelectedCarStore } from '../model/selected-car.store';
+import { useGarageUiStore } from '../../model/garage-ui.store';
 
 type SelectCarButtonProps = {
   car: Car;
 };
 
 function SelectCarButton({ car }: SelectCarButtonProps) {
-  const selectedCar = useSelectedCarStore((state) => state.selectedCar);
-  const selectCar = useSelectedCarStore((state) => state.selectCar);
-  const clearSelectedCar = useSelectedCarStore(
-    (state) => state.clearSelectedCar,
+  const selectedCarId = useGarageUiStore(
+    (state) => state.updateForm.selectedCarId,
   );
+  const setUpdateForm = useGarageUiStore((state) => state.setUpdateForm);
+  const resetUpdateForm = useGarageUiStore((state) => state.resetUpdateForm);
   const isRaceRunning = useRaceStore((state) => state.isRaceRunning);
-  const isSelected = selectedCar?.id === car.id;
+  const isSelected = selectedCarId === car.id;
 
   const handleSelectCar = () => {
     if (isRaceRunning) return;
 
     if (isSelected) {
-      clearSelectedCar();
+      resetUpdateForm();
       return;
     }
 
-    selectCar(car);
+    setUpdateForm({
+      selectedCarId: car.id,
+      name: car.name,
+      color: car.color,
+    });
   };
 
   return (

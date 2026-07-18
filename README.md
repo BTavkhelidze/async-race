@@ -1,10 +1,10 @@
 # Async Race
 
-**Self-assessment score: 345/400**
+**Self-assessment score: 395/400**
 
-**Deployed application:** `DEPLOYMENT_URL`
+**Deployed application:** https://async-race-amber.vercel.app/
 
-**Frontend repository:** `FRONTEND_REPOSITORY_URL`
+**Frontend repository:** https://github.com/BTavkhelidze/async-race
 
 **Mock server:** https://github.com/mikhama/async-race-api
 
@@ -299,27 +299,27 @@ docs: update project documentation
 
 Only the frontend is deployed.
 
-**Deployment platform:** `DEPLOYMENT_PLATFORM`
+**Deployment platform:** Vercel
 
-**Deployment URL:** `DEPLOYMENT_URL`
+**Deployment URL:** https://async-race-amber.vercel.app/
 
 The evaluator must run the original mock server locally before opening the deployed frontend.
 
-## Self-assessment Checklist — 345/400
+## Self-assessment Checklist — 395/400
 
 ### UI Deployment
 
-- [ ] Deploy the frontend application.
-- [ ] Add the deployment URL at the top of README.
+- [x] Deploy the frontend application.
+- [x] Add the deployment URL at the top of README.
 
 ### Commits and Repository
 
 - [x] Follow Conventional Commits.
 - [x] Include the checklist in README.
 - [x] Include the self-assessment score.
-- [ ] Add the final deployment URL.
+- [x] Add the final deployment URL.
 
-## Basic Structure — 50/80
+## Basic Structure — 80/80
 
 - [x] **Two Views — 10 points**
   - Implement Garage and Winners.
@@ -335,16 +335,16 @@ The evaluator must run the original mock server locally before opening the deplo
   - Display Winners table.
   - Display pagination.
 
-- [ ] **Persistent State — 30 points**
+- [x] **Persistent State — 30 points**
   - Preserve Garage page.
   - Preserve Winners page.
   - Preserve create form values.
   - Preserve edit form values.
   - Preserve sorting state.
 
-## Garage View — 70/90
+## Garage View — 90/90
 
-- [ ] **CRUD Operations — 20 points**
+- [x] **CRUD Operations — 20 points**
   - Create cars.
   - Update cars.
   - Delete cars.
@@ -455,10 +455,10 @@ The evaluator must run the original mock server locally before opening the deplo
 
 ```text
 Project setup: In progress
-Garage: Partially implemented
+Garage: Implemented
 Race: Implemented
 Winners: Implemented
-Deployment: Not completed
-Self-assessment: 345/400
+Deployment: Completed
+Self-assessment: 395/400
 ```
 
