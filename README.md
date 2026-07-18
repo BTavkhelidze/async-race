@@ -1,6 +1,6 @@
 # Async Race
 
-**Self-assessment score: 395/400**
+**Self-assessment score: 400/400**
 
 **Deployed application:** https://async-race-amber.vercel.app/
 
@@ -305,7 +305,7 @@ Only the frontend is deployed.
 
 The evaluator must run the original mock server locally before opening the deployed frontend.
 
-## Self-assessment Checklist — 395/400
+## Self-assessment Checklist — 400/400
 
 ### UI Deployment
 
@@ -439,13 +439,13 @@ The evaluator must run the original mock server locally before opening the deplo
   - Handle pagination.
   - Handle view navigation.
 
-## Prettier and ESLint — 5/10
+## Prettier and ESLint — 10/10
 
 - [x] **Prettier — 5 points**
   - Configure `format`.
   - Configure `ci:format`.
 
-- [ ] **ESLint — 5 points**
+- [x] **ESLint — 5 points**
   - Configure Airbnb rules.
   - Configure `lint`.
   - Enable strict TypeScript.
@@ -459,6 +459,5 @@ Garage: Implemented
 Race: Implemented
 Winners: Implemented
 Deployment: Completed
-Self-assessment: 395/400
+Self-assessment: 400/400
 ```
-

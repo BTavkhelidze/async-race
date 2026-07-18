@@ -27,15 +27,11 @@ const buildWinnerUrl = (path = '', params?: URLSearchParams): string => {
   return url.toString();
 };
 
-const normalizeRaceTime = (time: number): number => {
-  return Number(time.toFixed(2));
-};
+const normalizeRaceTime = (time: number): number => Number(time.toFixed(2));
 
 export const isWinnerNotFoundError = (
   error: unknown,
-): error is WinnerNotFoundError => {
-  return error instanceof WinnerNotFoundError;
-};
+): error is WinnerNotFoundError => error instanceof WinnerNotFoundError;
 
 export const getWinner = async (id: number): Promise<Winner> => {
   const response = await fetch(buildWinnerUrl(`/${id}`));

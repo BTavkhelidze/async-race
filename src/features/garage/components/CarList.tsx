@@ -47,10 +47,8 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
   const isRaceRunning = useRaceStore((state) => state.isRaceRunning);
   const resetRaceState = useRaceStore((state) => state.resetRaceState);
   const canResetRace = carsNeedingReset.size > 0;
-  const {
-    playStartSoundForMinimumDuration,
-    stopStartSound: stopRaceAllSound,
-  } = useCarStartSound();
+  const { playStartSoundForMinimumDuration, stopStartSound: stopRaceAllSound } =
+    useCarStartSound();
   const {
     playDrivingSound: playRaceAllDrivingSound,
     playStopSound: playRaceAllStopSound,
@@ -147,34 +145,37 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
     [],
   );
 
-  const handleRaceFinish = useCallback((winner: RaceWinner) => {
-    if (!isRaceAllActiveRef.current || hasRaceAllFinishRef.current) return;
+  const handleRaceFinish = useCallback(
+    (winner: RaceWinner) => {
+      if (!isRaceAllActiveRef.current || hasRaceAllFinishRef.current) return;
 
-    hasRaceAllFinishRef.current = true;
-    isRaceAllActiveRef.current = false;
-    hasRaceAllDrivingSoundStartedRef.current = false;
-    playRaceAllStopSound();
-    setHasRaceStarted(true);
-    setWinnerPopup({
-      carName: winner.carName,
-      raceTimeSeconds: winner.raceTimeMs / 1000,
-    });
-    saveRaceWinner(
-      {
-        id: winner.carId,
-        time: winner.raceTimeMs / 1000,
-      },
-      {
-        onError: () => undefined,
-      },
-    );
+      hasRaceAllFinishRef.current = true;
+      isRaceAllActiveRef.current = false;
+      hasRaceAllDrivingSoundStartedRef.current = false;
+      playRaceAllStopSound();
+      setHasRaceStarted(true);
+      setWinnerPopup({
+        carName: winner.carName,
+        raceTimeSeconds: winner.raceTimeMs / 1000,
+      });
+      saveRaceWinner(
+        {
+          id: winner.carId,
+          time: winner.raceTimeMs / 1000,
+        },
+        {
+          onError: () => undefined,
+        },
+      );
 
-    carRefs.current.forEach((carRef) => {
-      if (!carRef || carRef.carId === winner.carId) return;
+      carRefs.current.forEach((carRef) => {
+        if (!carRef || carRef.carId === winner.carId) return;
 
-      carRef.stopRaceAtCurrentPosition();
-    });
-  }, [playRaceAllStopSound, saveRaceWinner]);
+        carRef.stopRaceAtCurrentPosition();
+      });
+    },
+    [playRaceAllStopSound, saveRaceWinner],
+  );
 
   const handleRaceDriveStart = useCallback(() => {
     if (
@@ -230,8 +231,8 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
             <div>
               <p className='text-sm font-bold text-[#FFB199]'>🏆 Winner!</p>
               <p className='mt-1 truncate text-sm text-slate-100'>
-                {winnerPopup.carName} —{' '}
-                {winnerPopup.raceTimeSeconds.toFixed(2)}s
+                {winnerPopup.carName} — {winnerPopup.raceTimeSeconds.toFixed(2)}
+                s
               </p>
             </div>
             <button

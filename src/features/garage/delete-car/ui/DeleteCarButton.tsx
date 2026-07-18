@@ -25,7 +25,7 @@ function DeleteCarButton({ car, onDeleted }: DeleteCarButtonProps) {
     if (!shouldDelete) return;
 
     deleteCarMutation.mutate(car.id, {
-      onSuccess: async () => {
+      onSuccess: () => {
         if (selectedCarId === car.id) {
           resetUpdateForm();
         }

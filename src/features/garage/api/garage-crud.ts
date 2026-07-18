@@ -1,4 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+export const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL);
 
 export type Car = {
   id: number;
@@ -66,7 +66,7 @@ export const getCars = async (
 
   await ensureSuccessfulResponse(response, 'Failed to fetch cars');
 
-  const cars: Car[] = await response.json();
+  const cars = (await response.json()) as Car[];
   const totalCountHeader = response.headers.get('X-Total-Count');
   const parsedTotalCount =
     totalCountHeader === null ? Number.NaN : Number(totalCountHeader);

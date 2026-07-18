@@ -20,8 +20,8 @@ export const useWinners = (
   page: number,
   limit: number,
   { sortField, sortOrder }: WinnerSortState,
-) => {
-  return useQuery<GetWinnersWithCarsResponse, Error>({
+) =>
+  useQuery<GetWinnersWithCarsResponse, Error>({
     queryKey: winnerQueryKeys.list(page, limit, sortField, sortOrder),
     queryFn: async () => {
       const { winners, totalCount } = await getWinners({
@@ -55,4 +55,3 @@ export const useWinners = (
     },
     placeholderData: keepPreviousData,
   });
-};

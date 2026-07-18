@@ -34,9 +34,8 @@ const ensureEngineResponse = async (
   }
 };
 
-export const isEngineApiError = (error: unknown): error is EngineApiError => {
-  return error instanceof EngineApiError;
-};
+export const isEngineApiError = (error: unknown): error is EngineApiError =>
+  error instanceof EngineApiError;
 
 const buildEngineUrl = (carId: number, status: EngineStatus): string => {
   const url = new URL('/engine', API_BASE_URL);
@@ -67,10 +66,7 @@ export const driveCar = async (carId: number): Promise<DriveResponse> => {
     method: 'PATCH',
   });
 
-  await ensureEngineResponse(
-    response,
-    `Failed to drive car with id ${carId}`,
-  );
+  await ensureEngineResponse(response, `Failed to drive car with id ${carId}`);
 
   const driveResponse = (await response.json()) as DriveResponse;
 

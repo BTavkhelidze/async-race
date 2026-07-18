@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import type { SubmitHandler } from 'react-hook-form';
+import { toast } from 'react-toastify';
 import {
   carFormSchema,
   DEFAULT_CAR_COLOR,
@@ -10,7 +11,6 @@ import {
 } from '../../car-form/model/carForm.schema';
 import { useRaceStore } from '../../../shared/model/race/race.store';
 import { createCar } from '../api/garage-crud';
-import { toast } from 'react-toastify';
 import { carQueryKeys } from '../cars-list/api/carQueryKeys';
 import { useGarageUiStore } from '../model/garage-ui.store';
 

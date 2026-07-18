@@ -8,6 +8,13 @@ export const winnerQueryKeys = {
     sortField: WinnerSortField,
     sortOrder: SortOrder,
   ) =>
-    [...winnerQueryKeys.all, 'list', page, limit, sortField, sortOrder] as const,
+    [
+      ...winnerQueryKeys.all,
+      'list',
+      page,
+      limit,
+      sortField,
+      sortOrder,
+    ] as const,
   detail: (id: number) => [...winnerQueryKeys.all, id] as const,
 };
