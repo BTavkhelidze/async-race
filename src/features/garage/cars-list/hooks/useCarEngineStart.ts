@@ -12,6 +12,7 @@ import { calculateTravelDistance } from '../lib/calculateTravelDistance';
 
 type StartCarOptions = {
   playSound?: boolean;
+  playDrivingSound?: boolean;
 };
 
 type UseCarEngineStartParams = {
@@ -20,8 +21,11 @@ type UseCarEngineStartParams = {
   trackRef: RefObject<HTMLDivElement | null>;
   finishLineOffset: number;
   onRaceFinish?: (carId: number, raceTimeMs: number) => void;
+  onDriveStart?: () => void;
   onStartSound: () => void;
   onStopStartSound: () => void;
+  onStartDrivingSound: () => void;
+  onStopDrivingSound: () => void;
   onWaitForMinimumStartDuration: () => Promise<void>;
 };
 
@@ -35,8 +39,11 @@ export function useCarEngineStart({
   trackRef,
   finishLineOffset,
   onRaceFinish,
+  onDriveStart,
   onStartSound,
   onStopStartSound,
+  onStartDrivingSound,
+  onStopDrivingSound,
   onWaitForMinimumStartDuration,
 }: UseCarEngineStartParams) {
   const [isStarting, setIsStarting] = useState(false);
@@ -96,7 +103,10 @@ export function useCarEngineStart({
   }, []);
 
   const startCar = useCallback(
-    async ({ playSound = true }: StartCarOptions = {}) => {
+    async ({
+      playSound = true,
+      playDrivingSound = true,
+    }: StartCarOptions = {}) => {
       const carElement = carRef.current;
       const trackElement = trackRef.current;
 
@@ -154,6 +164,11 @@ export function useCarEngineStart({
           finishLineOffset,
         );
 
+        if (playDrivingSound) {
+          onStartDrivingSound();
+        }
+        onDriveStart?.();
+
         const drivePromise = driveCar(carId)
           .then(() => null)
           .catch((error: unknown) => error);
@@ -182,6 +197,9 @@ export function useCarEngineStart({
           completeRegisteredRace();
           setIsRacing(false);
           setHasFinished(true);
+          if (playDrivingSound) {
+            onStopDrivingSound();
+          }
           onRaceFinish?.(carId, duration);
         };
 
@@ -199,6 +217,9 @@ export function useCarEngineStart({
         completeRegisteredRace();
         setIsRacing(false);
         setHasDriveFailed(true);
+        if (playDrivingSound) {
+          onStopDrivingSound();
+        }
         setEngineError(
           isEngineApiError(driveError) && driveError.status === 500
             ? 'Engine stopped while driving'
@@ -211,6 +232,9 @@ export function useCarEngineStart({
         completeRegisteredRace();
         setIsStarting(false);
         setIsRacing(false);
+        if (playDrivingSound) {
+          onStopDrivingSound();
+        }
         setEngineError(
           error instanceof Error ? error.message : 'Engine failed to start',
         );
@@ -234,7 +258,10 @@ export function useCarEngineStart({
       isStarting,
       onStartSound,
       onRaceFinish,
+      onDriveStart,
+      onStartDrivingSound,
       onStopStartSound,
+      onStopDrivingSound,
       onWaitForMinimumStartDuration,
       registerRaceStart,
       trackRef,
@@ -253,9 +280,11 @@ export function useCarEngineStart({
     setHasDriveFailed(false);
     setEngineError(null);
     onStopStartSound();
+    onStopDrivingSound();
   }, [
     clearAnimation,
     completeRegisteredRace,
+    onStopDrivingSound,
     onStopStartSound,
     resetCarPosition,
   ]);
@@ -268,7 +297,13 @@ export function useCarEngineStart({
     setIsRacing(false);
     setHasRaceStopped(true);
     onStopStartSound();
-  }, [completeRegisteredRace, freezeCarPosition, onStopStartSound]);
+    onStopDrivingSound();
+  }, [
+    completeRegisteredRace,
+    freezeCarPosition,
+    onStopDrivingSound,
+    onStopStartSound,
+  ]);
 
   const resetCar = useCallback(() => {
     stopCar();
@@ -282,8 +317,14 @@ export function useCarEngineStart({
       clearAnimation();
       completeRegisteredRace();
       onStopStartSound();
+      onStopDrivingSound();
     };
-  }, [clearAnimation, completeRegisteredRace, onStopStartSound]);
+  }, [
+    clearAnimation,
+    completeRegisteredRace,
+    onStopDrivingSound,
+    onStopStartSound,
+  ]);
 
   return {
     isStarting,

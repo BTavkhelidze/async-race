@@ -8,6 +8,7 @@ import {
 import type { Car } from '../../api/garage-crud';
 import { useCarEngineStart } from '../hooks/useCarEngineStart';
 import { useCarStartSound } from '../hooks/useCarStartSound';
+import { useRaceDrivingSound } from '../hooks/useRaceDrivingSound';
 import DeleteCarButton from '../../delete-car/ui/DeleteCarButton';
 import SelectCarButton from '../../select-car/ui/SelectCarButton';
 import RaceCar from '../../../../shared/assets/icons/car-svgrepo.svg?react';
@@ -15,6 +16,7 @@ import { cn } from '../../../../shared/lib/utils';
 
 type StartRaceOptions = {
   playSound?: boolean;
+  playDrivingSound?: boolean;
 };
 
 export type CarListItemHandle = {
@@ -35,16 +37,21 @@ type CarListItemProps = {
     carName: string;
     raceTimeMs: number;
   }) => void;
+  onRaceDriveStart?: () => void;
 };
 
 const FINISH_LINE_OFFSET_PX = 150;
 
 const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
-  ({ car, onDeleted, onResetStateChange, onRaceFinish }, ref) => {
+  (
+    { car, onDeleted, onResetStateChange, onRaceFinish, onRaceDriveStart },
+    ref,
+  ) => {
     const trackRef = useRef<HTMLDivElement>(null);
     const carRef = useRef<SVGSVGElement | null>(null);
     const { playStartSound, stopStartSound, waitForMinimumStartDuration } =
       useCarStartSound();
+    const { playDrivingSound, stopDrivingSound } = useRaceDrivingSound();
 
     const {
       isStarting,
@@ -69,8 +76,11 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
           raceTimeMs,
         });
       },
+      onDriveStart: onRaceDriveStart,
       onStartSound: playStartSound,
       onStopStartSound: stopStartSound,
+      onStartDrivingSound: playDrivingSound,
+      onStopDrivingSound: stopDrivingSound,
       onWaitForMinimumStartDuration: waitForMinimumStartDuration,
     });
     const statusText = isStarting
@@ -92,7 +102,10 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
 
     const startRace = useCallback(
       (options?: StartRaceOptions) => {
-        void startCar({ playSound: options?.playSound ?? false });
+        void startCar({
+          playSound: options?.playSound ?? false,
+          playDrivingSound: options?.playDrivingSound ?? false,
+        });
       },
       [startCar],
     );

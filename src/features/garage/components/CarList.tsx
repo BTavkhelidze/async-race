@@ -3,6 +3,7 @@ import { Pagination } from '../../../shared/ui/pagination';
 import { useRaceStore } from '../../../shared/model/race/race.store';
 import { useCarsQuery } from '../cars-list/api/useCarsQuery';
 import { useCarStartSound } from '../cars-list/hooks/useCarStartSound';
+import { useRaceDrivingSound } from '../cars-list/hooks/useRaceDrivingSound';
 import CarListItem, {
   type CarListItemHandle,
 } from '../cars-list/ui/CarListItem';
@@ -33,6 +34,7 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
   const raceAllSoundRunIdRef = useRef(0);
   const isRaceAllActiveRef = useRef(false);
   const hasRaceAllFinishRef = useRef(false);
+  const hasRaceAllDrivingSoundStartedRef = useRef(false);
   const [hasRaceStarted, setHasRaceStarted] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [carsNeedingReset, setCarsNeedingReset] = useState<Set<number>>(
@@ -46,6 +48,10 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
     playStartSoundForMinimumDuration,
     stopStartSound: stopRaceAllSound,
   } = useCarStartSound();
+  const {
+    playDrivingSound: playRaceAllDrivingSound,
+    stopDrivingSound: stopRaceAllDrivingSound,
+  } = useRaceDrivingSound();
 
   const playRaceAllSound = () => {
     const runId = raceAllSoundRunIdRef.current + 1;
@@ -68,18 +74,21 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
 
     isRaceAllActiveRef.current = true;
     hasRaceAllFinishRef.current = false;
+    hasRaceAllDrivingSoundStartedRef.current = false;
     playRaceAllSound();
     setHasRaceStarted(true);
     carRefs.current.forEach((carRef) => {
-      carRef?.startRace({ playSound: false });
+      carRef?.startRace({ playSound: false, playDrivingSound: false });
     });
   };
 
   const resetAll = () => {
     isRaceAllActiveRef.current = false;
     hasRaceAllFinishRef.current = false;
+    hasRaceAllDrivingSoundStartedRef.current = false;
     setWinnerPopup(null);
     stopRaceAllStartSound();
+    stopRaceAllDrivingSound();
     carRefs.current.forEach((carRef) => {
       carRef?.resetRace();
     });
@@ -101,6 +110,8 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
 
     isRaceAllActiveRef.current = false;
     hasRaceAllFinishRef.current = false;
+    hasRaceAllDrivingSoundStartedRef.current = false;
+    stopRaceAllDrivingSound();
     carRefs.current = [];
     setCarsNeedingReset(new Set());
     setHasRaceStarted(false);
@@ -129,6 +140,8 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
 
     hasRaceAllFinishRef.current = true;
     isRaceAllActiveRef.current = false;
+    hasRaceAllDrivingSoundStartedRef.current = false;
+    stopRaceAllDrivingSound();
     setHasRaceStarted(true);
     setWinnerPopup({
       carName: winner.carName,
@@ -140,7 +153,20 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
 
       carRef.stopRaceAtCurrentPosition();
     });
-  }, []);
+  }, [stopRaceAllDrivingSound]);
+
+  const handleRaceDriveStart = useCallback(() => {
+    if (
+      !isRaceAllActiveRef.current ||
+      hasRaceAllFinishRef.current ||
+      hasRaceAllDrivingSoundStartedRef.current
+    ) {
+      return;
+    }
+
+    hasRaceAllDrivingSoundStartedRef.current = true;
+    playRaceAllDrivingSound();
+  }, [playRaceAllDrivingSound]);
 
   useEffect(() => {
     if (!winnerPopup) return;
@@ -153,6 +179,14 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
       window.clearTimeout(timeoutId);
     };
   }, [winnerPopup]);
+
+  useEffect(() => {
+    if (isRaceRunning || !isRaceAllActiveRef.current) return;
+
+    isRaceAllActiveRef.current = false;
+    hasRaceAllDrivingSoundStartedRef.current = false;
+    stopRaceAllDrivingSound();
+  }, [isRaceRunning, stopRaceAllDrivingSound]);
 
   const shouldMoveToPreviousPageAfterDelete =
     currentPage > 1 && data?.cars.length === 1;
@@ -239,6 +273,7 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
                 }
                 onResetStateChange={handleResetStateChange}
                 onRaceFinish={handleRaceFinish}
+                onRaceDriveStart={handleRaceDriveStart}
                 ref={(el) => {
                   carRefs.current[index] = el;
                 }}
