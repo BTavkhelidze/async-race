@@ -18,8 +18,10 @@ type StartRaceOptions = {
 };
 
 export type CarListItemHandle = {
+  carId: number;
   startRace: (options?: StartRaceOptions) => void;
   stopRace: () => void;
+  stopRaceAtCurrentPosition: () => void;
   resetRace: () => void;
   needsReset: () => boolean;
 };
@@ -28,31 +30,45 @@ type CarListItemProps = {
   car: Car;
   onDeleted?: () => void;
   onResetStateChange?: (carId: number, needsReset: boolean) => void;
+  onRaceFinish?: (winner: {
+    carId: number;
+    carName: string;
+    raceTimeMs: number;
+  }) => void;
 };
 
+const FINISH_LINE_OFFSET_PX = 150;
+
 const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
-  ({ car, onDeleted, onResetStateChange }, ref) => {
+  ({ car, onDeleted, onResetStateChange, onRaceFinish }, ref) => {
     const trackRef = useRef<HTMLDivElement>(null);
     const carRef = useRef<SVGSVGElement | null>(null);
-    const {
-      playStartSound,
-      stopStartSound,
-      waitForMinimumStartDuration,
-    } = useCarStartSound();
+    const { playStartSound, stopStartSound, waitForMinimumStartDuration } =
+      useCarStartSound();
 
     const {
       isStarting,
       isRacing,
       hasFinished,
+      hasRaceStopped,
       hasDriveFailed,
       engineError,
       startCar,
       stopCar,
+      stopCarAtCurrentPosition,
       resetCar,
     } = useCarEngineStart({
       carId: car.id,
       carRef,
       trackRef,
+      finishLineOffset: FINISH_LINE_OFFSET_PX,
+      onRaceFinish: (carId, raceTimeMs) => {
+        onRaceFinish?.({
+          carId,
+          carName: car.name,
+          raceTimeMs,
+        });
+      },
       onStartSound: playStartSound,
       onStopStartSound: stopStartSound,
       onWaitForMinimumStartDuration: waitForMinimumStartDuration,
@@ -70,16 +86,24 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
       isStarting ||
       isRacing ||
       hasFinished ||
+      hasRaceStopped ||
       hasDriveFailed ||
       Boolean(engineError);
 
-    const startRace = useCallback((options?: StartRaceOptions) => {
-      void startCar({ playSound: options?.playSound ?? false });
-    }, [startCar]);
+    const startRace = useCallback(
+      (options?: StartRaceOptions) => {
+        void startCar({ playSound: options?.playSound ?? false });
+      },
+      [startCar],
+    );
 
     const stopRace = useCallback(() => {
       stopCar();
     }, [stopCar]);
+
+    const stopRaceAtCurrentPosition = useCallback(() => {
+      stopCarAtCurrentPosition();
+    }, [stopCarAtCurrentPosition]);
 
     const resetRace = useCallback(() => {
       resetCar();
@@ -88,8 +112,10 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
     const needsReset = useCallback(() => requiresReset, [requiresReset]);
 
     useImperativeHandle(ref, () => ({
+      carId: car.id,
       startRace,
       stopRace,
+      stopRaceAtCurrentPosition,
       resetRace,
       needsReset,
     }));
@@ -136,8 +162,12 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
             )}
             style={{ fill: car.color }}
           />
-          <div className='absolute right-37 top-0 h-full border-l-2 border-dashed border-[#FF5722]/70' />
 
+          <div
+            className='absolute top-0 h-full  '
+            style={{ right: FINISH_LINE_OFFSET_PX }}
+          />
+          <div className='absolute top-0 h-full right-48 border-l-2 border-dashed border-[#FF5722]/70' />
           <div className='z-10 my-2 grid grid-cols-2 gap-1 self-center'>
             <button
               type='button'
@@ -146,6 +176,7 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
                 isStarting ||
                 isRacing ||
                 hasFinished ||
+                hasRaceStopped ||
                 hasDriveFailed ||
                 Boolean(engineError)
               }
@@ -158,7 +189,11 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
               type='button'
               onClick={stopRace}
               disabled={
-                !isRacing && !hasDriveFailed && !hasFinished && !engineError
+                !isStarting &&
+                !isRacing &&
+                !hasDriveFailed &&
+                !hasFinished &&
+                !engineError
               }
               className='h-7 min-w-10 px-2 text-xs border border-[#FF5722]/70 rounded-md disabled:opacity-50 transition-colors'
             >

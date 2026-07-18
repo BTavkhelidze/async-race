@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pagination } from '../../../shared/ui/pagination';
 import { useRaceStore } from '../../../shared/model/race/race.store';
 import { useCarsQuery } from '../cars-list/api/useCarsQuery';
@@ -17,14 +17,28 @@ type CarListProps = {
   isGenerateCarsPending?: boolean;
 };
 
+type RaceWinner = {
+  carId: number;
+  carName: string;
+  raceTimeMs: number;
+};
+
+type WinnerPopup = {
+  carName: string;
+  raceTimeSeconds: number;
+};
+
 function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
   const carRefs = useRef<(CarListItemHandle | null)[]>([]);
   const raceAllSoundRunIdRef = useRef(0);
+  const isRaceAllActiveRef = useRef(false);
+  const hasRaceAllFinishRef = useRef(false);
   const [hasRaceStarted, setHasRaceStarted] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [carsNeedingReset, setCarsNeedingReset] = useState<Set<number>>(
     () => new Set(),
   );
+  const [winnerPopup, setWinnerPopup] = useState<WinnerPopup | null>(null);
   const isRaceRunning = useRaceStore((state) => state.isRaceRunning);
   const resetRaceState = useRaceStore((state) => state.resetRaceState);
   const canResetRace = carsNeedingReset.size > 0;
@@ -52,6 +66,8 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
   const startAll = () => {
     if (isRaceRunning) return;
 
+    isRaceAllActiveRef.current = true;
+    hasRaceAllFinishRef.current = false;
     playRaceAllSound();
     setHasRaceStarted(true);
     carRefs.current.forEach((carRef) => {
@@ -60,6 +76,9 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
   };
 
   const resetAll = () => {
+    isRaceAllActiveRef.current = false;
+    hasRaceAllFinishRef.current = false;
+    setWinnerPopup(null);
     stopRaceAllStartSound();
     carRefs.current.forEach((carRef) => {
       carRef?.resetRace();
@@ -80,6 +99,8 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
   const handlePageChange = (page: number) => {
     if (isRaceRunning) return;
 
+    isRaceAllActiveRef.current = false;
+    hasRaceAllFinishRef.current = false;
     carRefs.current = [];
     setCarsNeedingReset(new Set());
     setHasRaceStarted(false);
@@ -103,6 +124,36 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
     [],
   );
 
+  const handleRaceFinish = useCallback((winner: RaceWinner) => {
+    if (!isRaceAllActiveRef.current || hasRaceAllFinishRef.current) return;
+
+    hasRaceAllFinishRef.current = true;
+    isRaceAllActiveRef.current = false;
+    setHasRaceStarted(true);
+    setWinnerPopup({
+      carName: winner.carName,
+      raceTimeSeconds: winner.raceTimeMs / 1000,
+    });
+
+    carRefs.current.forEach((carRef) => {
+      if (!carRef || carRef.carId === winner.carId) return;
+
+      carRef.stopRaceAtCurrentPosition();
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!winnerPopup) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setWinnerPopup(null);
+    }, 5000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [winnerPopup]);
+
   const shouldMoveToPreviousPageAfterDelete =
     currentPage > 1 && data?.cars.length === 1;
 
@@ -114,6 +165,31 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
         </h3>
         <span className='text-sm text-slate-400'>Total: {totalCars}</span>
       </div>
+
+      {winnerPopup && (
+        <div
+          role='status'
+          className='fixed left-1/2 top-1/2 z-50 w-56 -translate-x-1/2 -translate-y-1/2 rounded-lg border border-[#FF5722]/60 bg-[#0A0E17] p-3 text-slate-100 shadow-[0_16px_40px_rgba(0,0,0,0.35)]'
+        >
+          <div className='flex items-start justify-between gap-3'>
+            <div>
+              <p className='text-sm font-bold text-[#FFB199]'>🏆 Winner!</p>
+              <p className='mt-1 truncate text-sm text-slate-100'>
+                {winnerPopup.carName} —{' '}
+                {winnerPopup.raceTimeSeconds.toFixed(2)}s
+              </p>
+            </div>
+            <button
+              type='button'
+              aria-label='Close winner popup'
+              onClick={() => setWinnerPopup(null)}
+              className='grid h-6 w-6 place-items-center rounded-md border border-[#1F293A] text-sm leading-none text-slate-400 transition-colors hover:border-[#FF5722]/70 hover:text-white'
+            >
+              x
+            </button>
+          </div>
+        </div>
+      )}
 
       {isPending && <p className='text-sm text-slate-400'>Loading cars...</p>}
 
@@ -162,6 +238,7 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
                     : undefined
                 }
                 onResetStateChange={handleResetStateChange}
+                onRaceFinish={handleRaceFinish}
                 ref={(el) => {
                   carRefs.current[index] = el;
                 }}

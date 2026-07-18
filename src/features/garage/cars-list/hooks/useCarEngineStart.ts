@@ -18,6 +18,8 @@ type UseCarEngineStartParams = {
   carId: number;
   carRef: RefObject<SVGSVGElement | null>;
   trackRef: RefObject<HTMLDivElement | null>;
+  finishLineOffset: number;
+  onRaceFinish?: (carId: number, raceTimeMs: number) => void;
   onStartSound: () => void;
   onStopStartSound: () => void;
   onWaitForMinimumStartDuration: () => Promise<void>;
@@ -27,6 +29,8 @@ export function useCarEngineStart({
   carId,
   carRef,
   trackRef,
+  finishLineOffset,
+  onRaceFinish,
   onStartSound,
   onStopStartSound,
   onWaitForMinimumStartDuration,
@@ -34,9 +38,11 @@ export function useCarEngineStart({
   const [isStarting, setIsStarting] = useState(false);
   const [isRacing, setIsRacing] = useState(false);
   const [hasFinished, setHasFinished] = useState(false);
+  const [hasRaceStopped, setHasRaceStopped] = useState(false);
   const [hasDriveFailed, setHasDriveFailed] = useState(false);
   const [engineError, setEngineError] = useState<string | null>(null);
   const animationRef = useRef<Animation | null>(null);
+  const activeRunIdRef = useRef(0);
   const hasRegisteredRaceRef = useRef(false);
   const isMountedRef = useRef(true);
   const registerRaceStart = useRaceStore((state) => state.registerRaceStart);
@@ -62,8 +68,28 @@ export function useCarEngineStart({
     carElement.getAnimations().forEach((animation) => {
       animation.cancel();
     });
+    carElement.style.removeProperty('transform');
     carElement.style.transform = 'translateX(0px)';
   }, [carRef]);
+
+  const freezeCarPosition = useCallback(() => {
+    const carElement = carRef.current;
+
+    if (!carElement) return;
+
+    const currentTransform = window.getComputedStyle(carElement).transform;
+
+    carElement.getAnimations().forEach((animation) => {
+      animation.cancel();
+    });
+    carElement.style.transform =
+      currentTransform === 'none' ? 'translateX(0px)' : currentTransform;
+    animationRef.current = null;
+  }, [carRef]);
+
+  const isCurrentRun = useCallback((runId: number) => {
+    return isMountedRef.current && activeRunIdRef.current === runId;
+  }, []);
 
   const startCar = useCallback(
     async ({ playSound = true }: StartCarOptions = {}) => {
@@ -74,6 +100,7 @@ export function useCarEngineStart({
         isStarting ||
         isRacing ||
         hasFinished ||
+        hasRaceStopped ||
         hasDriveFailed ||
         engineError ||
         hasRegisteredRaceRef.current ||
@@ -82,6 +109,9 @@ export function useCarEngineStart({
       ) {
         return;
       }
+
+      const runId = activeRunIdRef.current + 1;
+      activeRunIdRef.current = runId;
 
       setIsStarting(true);
       setEngineError(null);
@@ -96,9 +126,11 @@ export function useCarEngineStart({
         const minimumDelayPromise = onWaitForMinimumStartDuration();
         const engine = await engineRequestPromise;
 
+        if (!isCurrentRun(runId)) return;
+
         await minimumDelayPromise;
         onStopStartSound();
-        if (!isMountedRef.current) return;
+        if (!isCurrentRun(runId)) return;
 
         setIsStarting(false);
         setEngineError(null);
@@ -115,6 +147,7 @@ export function useCarEngineStart({
         const travelDistance = calculateTravelDistance(
           trackElement.offsetWidth,
           carElement.getBoundingClientRect().width,
+          finishLineOffset,
         );
 
         clearAnimation();
@@ -132,18 +165,23 @@ export function useCarEngineStart({
         setIsRacing(true);
 
         animation.onfinish = () => {
-          if (animationRef.current !== animation) return;
+          if (!isCurrentRun(runId) || animationRef.current !== animation) {
+            return;
+          }
 
           carElement.style.transform = `translateX(${travelDistance}px)`;
           animationRef.current = null;
           completeRegisteredRace();
           setIsRacing(false);
           setHasFinished(true);
+          onRaceFinish?.(carId, duration);
         };
 
         try {
           await driveCar(carId);
         } catch (error) {
+          if (!isCurrentRun(runId)) return;
+
           if (animationRef.current === animation) {
             animation.pause();
           }
@@ -159,7 +197,7 @@ export function useCarEngineStart({
         }
       } catch (error) {
         onStopStartSound();
-        if (!isMountedRef.current) return;
+        if (!isCurrentRun(runId)) return;
 
         completeRegisteredRace();
         setIsStarting(false);
@@ -178,10 +216,14 @@ export function useCarEngineStart({
       completeRegisteredRace,
       hasDriveFailed,
       hasFinished,
+      hasRaceStopped,
       engineError,
+      finishLineOffset,
+      isCurrentRun,
       isRacing,
       isStarting,
       onStartSound,
+      onRaceFinish,
       onStopStartSound,
       onWaitForMinimumStartDuration,
       registerRaceStart,
@@ -190,12 +232,14 @@ export function useCarEngineStart({
   );
 
   const stopCar = useCallback(() => {
+    activeRunIdRef.current += 1;
     clearAnimation();
     resetCarPosition();
     completeRegisteredRace();
     setIsStarting(false);
     setIsRacing(false);
     setHasFinished(false);
+    setHasRaceStopped(false);
     setHasDriveFailed(false);
     setEngineError(null);
     onStopStartSound();
@@ -205,6 +249,16 @@ export function useCarEngineStart({
     onStopStartSound,
     resetCarPosition,
   ]);
+
+  const stopCarAtCurrentPosition = useCallback(() => {
+    activeRunIdRef.current += 1;
+    freezeCarPosition();
+    completeRegisteredRace();
+    setIsStarting(false);
+    setIsRacing(false);
+    setHasRaceStopped(true);
+    onStopStartSound();
+  }, [completeRegisteredRace, freezeCarPosition, onStopStartSound]);
 
   const resetCar = useCallback(() => {
     stopCar();
@@ -225,10 +279,12 @@ export function useCarEngineStart({
     isStarting,
     isRacing,
     hasFinished,
+    hasRaceStopped,
     hasDriveFailed,
     engineError,
     startCar,
     stopCar,
+    stopCarAtCurrentPosition,
     resetCar,
     animationRef,
   };
