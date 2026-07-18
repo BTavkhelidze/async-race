@@ -1,10 +1,44 @@
-import {
-  API_BASE_URL,
-  ensureSuccessfulResponse,
-} from '../../api/garage-crud';
-import type { EngineStartResponse } from '../model/engine.types';
+import { API_BASE_URL } from '../../api/garage-crud';
+import type {
+  DriveResponse,
+  EngineStartedResponse,
+  EngineStatus,
+} from '../model/engine.types';
 
-const buildEngineUrl = (carId: number, status: 'started' | 'drive'): string => {
+export class EngineApiError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'EngineApiError';
+    this.status = status;
+  }
+}
+
+const getResponseErrorDetails = async (response: Response): Promise<string> => {
+  const responseText = await response.text();
+
+  return responseText ? ` Response body: ${responseText}` : '';
+};
+
+const ensureEngineResponse = async (
+  response: Response,
+  message: string,
+): Promise<void> => {
+  if (!response.ok) {
+    const errorDetails = await getResponseErrorDetails(response);
+    throw new EngineApiError(
+      `${message}. Status: ${response.status} ${response.statusText}.${errorDetails}`,
+      response.status,
+    );
+  }
+};
+
+export const isEngineApiError = (error: unknown): error is EngineApiError => {
+  return error instanceof EngineApiError;
+};
+
+const buildEngineUrl = (carId: number, status: EngineStatus): string => {
   const url = new URL('/engine', API_BASE_URL);
 
   url.searchParams.set('id', String(carId));
@@ -15,26 +49,34 @@ const buildEngineUrl = (carId: number, status: 'started' | 'drive'): string => {
 
 export const startEngine = async (
   carId: number,
-): Promise<EngineStartResponse> => {
+): Promise<EngineStartedResponse> => {
   const response = await fetch(buildEngineUrl(carId, 'started'), {
     method: 'PATCH',
   });
 
-  await ensureSuccessfulResponse(
+  await ensureEngineResponse(
     response,
     `Failed to start engine for car with id ${carId}`,
   );
 
-  return response.json() as Promise<EngineStartResponse>;
+  return response.json() as Promise<EngineStartedResponse>;
 };
 
-export const driveCar = async (carId: number): Promise<void> => {
+export const driveCar = async (carId: number): Promise<DriveResponse> => {
   const response = await fetch(buildEngineUrl(carId, 'drive'), {
     method: 'PATCH',
   });
 
-  await ensureSuccessfulResponse(
+  await ensureEngineResponse(
     response,
     `Failed to drive car with id ${carId}`,
   );
+
+  const driveResponse = (await response.json()) as DriveResponse;
+
+  if (driveResponse.success !== true) {
+    throw new Error(`Unexpected drive response for car with id ${carId}`);
+  }
+
+  return driveResponse;
 };

@@ -6,7 +6,7 @@ import {
   type RefObject,
 } from 'react';
 import { useRaceStore } from '../../../../shared/model/race/race.store';
-import { driveCar, startEngine } from '../api/engine.api';
+import { driveCar, isEngineApiError, startEngine } from '../api/engine.api';
 import { calculateRaceDuration } from '../lib/calculateRaceDuration';
 import { calculateTravelDistance } from '../lib/calculateTravelDistance';
 
@@ -23,6 +23,10 @@ type UseCarEngineStartParams = {
   onStartSound: () => void;
   onStopStartSound: () => void;
   onWaitForMinimumStartDuration: () => Promise<void>;
+};
+
+const getErrorMessage = (error: unknown, fallback: string): string => {
+  return error instanceof Error ? error.message : fallback;
 };
 
 export function useCarEngineStart({
@@ -150,6 +154,10 @@ export function useCarEngineStart({
           finishLineOffset,
         );
 
+        const drivePromise = driveCar(carId)
+          .then(() => null)
+          .catch((error: unknown) => error);
+
         clearAnimation();
         carElement.style.transform = 'translateX(0px)';
 
@@ -177,24 +185,25 @@ export function useCarEngineStart({
           onRaceFinish?.(carId, duration);
         };
 
-        try {
-          await driveCar(carId);
-        } catch (error) {
-          if (!isCurrentRun(runId)) return;
+        const driveError = await drivePromise;
 
-          if (animationRef.current === animation) {
-            animation.pause();
-          }
-
-          completeRegisteredRace();
-          setIsRacing(false);
-          setHasDriveFailed(true);
-          setEngineError(
-            error instanceof Error
-              ? error.message
-              : 'Engine stopped while driving',
-          );
+        if (driveError === null) {
+          return;
         }
+
+        if (!isCurrentRun(runId) || animationRef.current !== animation) {
+          return;
+        }
+
+        freezeCarPosition();
+        completeRegisteredRace();
+        setIsRacing(false);
+        setHasDriveFailed(true);
+        setEngineError(
+          isEngineApiError(driveError) && driveError.status === 500
+            ? 'Engine stopped while driving'
+            : getErrorMessage(driveError, 'Engine stopped while driving'),
+        );
       } catch (error) {
         onStopStartSound();
         if (!isCurrentRun(runId)) return;
@@ -214,6 +223,7 @@ export function useCarEngineStart({
       carRef,
       clearAnimation,
       completeRegisteredRace,
+      freezeCarPosition,
       hasDriveFailed,
       hasFinished,
       hasRaceStopped,
