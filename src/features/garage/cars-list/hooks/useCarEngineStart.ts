@@ -35,6 +35,11 @@ const getErrorMessage = (error: unknown, fallback: string): string => {
   return error instanceof Error ? error.message : fallback;
 };
 
+const detachAnimationHandlers = (animation: Animation): void => {
+  animation.onfinish = null;
+  animation.oncancel = null;
+};
+
 export function useCarEngineStart({
   carId,
   carRef,
@@ -71,7 +76,10 @@ export function useCarEngineStart({
   }, [registerRaceEnd]);
 
   const clearAnimation = useCallback(() => {
-    animationRef.current?.cancel();
+    if (animationRef.current) {
+      detachAnimationHandlers(animationRef.current);
+      animationRef.current.cancel();
+    }
     animationRef.current = null;
   }, []);
 
@@ -80,11 +88,22 @@ export function useCarEngineStart({
 
     if (!carElement) return;
 
-    carElement.getAnimations().forEach((animation) => {
+    const animations = new Set(
+      [animationRef.current, ...carElement.getAnimations()].filter(
+        (animation): animation is Animation => animation !== null,
+      ),
+    );
+
+    animations.forEach((animation) => {
+      detachAnimationHandlers(animation);
       animation.cancel();
     });
+
+    carElement.style.removeProperty('left');
     carElement.style.removeProperty('transform');
+    carElement.style.removeProperty('translate');
     carElement.style.transform = 'translateX(0px)';
+    animationRef.current = null;
   }, [carRef]);
 
   const freezeCarPosition = useCallback(() => {
@@ -94,7 +113,14 @@ export function useCarEngineStart({
 
     const currentTransform = window.getComputedStyle(carElement).transform;
 
-    carElement.getAnimations().forEach((animation) => {
+    const animations = new Set(
+      [animationRef.current, ...carElement.getAnimations()].filter(
+        (animation): animation is Animation => animation !== null,
+      ),
+    );
+
+    animations.forEach((animation) => {
+      detachAnimationHandlers(animation);
       animation.cancel();
     });
     carElement.style.transform =
@@ -276,7 +302,6 @@ export function useCarEngineStart({
 
   const stopCar = useCallback((playStopSound = false) => {
     activeRunIdRef.current += 1;
-    clearAnimation();
     resetCarPosition();
     completeRegisteredRace();
     setIsStarting(false);
@@ -292,7 +317,6 @@ export function useCarEngineStart({
       onStopAllRaceSounds();
     }
   }, [
-    clearAnimation,
     completeRegisteredRace,
     onStopAllRaceSounds,
     onPlayStopSound,
