@@ -4,6 +4,7 @@ import { useRaceStore } from '../../../shared/model/race/race.store';
 import { useCarsQuery } from '../cars-list/api/useCarsQuery';
 import { useCarStartSound } from '../cars-list/hooks/useCarStartSound';
 import { useRaceDrivingSound } from '../cars-list/hooks/useRaceDrivingSound';
+import { useSaveRaceWinnerMutation } from '../../winners/api/useSaveRaceWinnerMutation';
 import CarListItem, {
   type CarListItemHandle,
 } from '../cars-list/ui/CarListItem';
@@ -53,6 +54,7 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
     playStopSound: playRaceAllStopSound,
     stopAllRaceSounds,
   } = useRaceDrivingSound();
+  const { mutate: saveRaceWinner } = useSaveRaceWinnerMutation();
 
   const playRaceAllSound = () => {
     const runId = raceAllSoundRunIdRef.current + 1;
@@ -148,13 +150,22 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
       carName: winner.carName,
       raceTimeSeconds: winner.raceTimeMs / 1000,
     });
+    saveRaceWinner(
+      {
+        id: winner.carId,
+        time: winner.raceTimeMs / 1000,
+      },
+      {
+        onError: () => undefined,
+      },
+    );
 
     carRefs.current.forEach((carRef) => {
       if (!carRef || carRef.carId === winner.carId) return;
 
       carRef.stopRaceAtCurrentPosition();
     });
-  }, [playRaceAllStopSound]);
+  }, [playRaceAllStopSound, saveRaceWinner]);
 
   const handleRaceDriveStart = useCallback(() => {
     if (
