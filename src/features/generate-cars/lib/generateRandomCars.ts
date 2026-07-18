@@ -1,9 +1,8 @@
 import type { CarPayload } from '../../garage/api/garage-crud';
 import { CAR_BRANDS, CAR_MODELS } from '../model/generateCars.constants';
 
-export const getRandomItem = <T,>(items: T[]): T => {
-  return items[Math.floor(Math.random() * items.length)];
-};
+export const getRandomItem = <T>(items: T[]): T =>
+  items[Math.floor(Math.random() * items.length)];
 
 export const generateRandomColor = (): string => {
   const color = Math.floor(Math.random() * 0xffffff)
@@ -24,6 +23,5 @@ export const generateRandomCar = (): CarPayload => {
   };
 };
 
-export const generateRandomCars = (count: number): CarPayload[] => {
-  return Array.from({ length: count }, generateRandomCar);
-};
+export const generateRandomCars = (count: number): CarPayload[] =>
+  Array.from({ length: count }, generateRandomCar);

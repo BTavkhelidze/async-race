@@ -40,6 +40,24 @@ type CarListItemProps = {
   onRaceDriveStart?: () => void;
 };
 
+type CarStatusParams = {
+  engineError: string | null;
+  hasFinished: boolean;
+  isRacing: boolean;
+};
+
+const getCarStatusText = ({
+  engineError,
+  hasFinished,
+  isRacing,
+}: CarStatusParams): string | null => {
+  if (engineError) return 'Engine error';
+  if (isRacing) return 'Racing';
+  if (hasFinished) return 'Finished';
+
+  return null;
+};
+
 const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
   (
     { car, onDeleted, onResetStateChange, onRaceFinish, onRaceDriveStart },
@@ -91,13 +109,11 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
     });
     const statusText = isStarting
       ? 'Starting engine...'
-      : engineError
-        ? 'Engine error'
-        : isRacing
-          ? 'Racing'
-          : hasFinished
-            ? 'Finished'
-            : null;
+      : getCarStatusText({
+          engineError,
+          hasFinished,
+          isRacing,
+        });
     const requiresReset =
       isStarting ||
       isRacing ||
@@ -189,7 +205,9 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
           <div className='z-10 my-2 grid grid-cols-2 gap-1 self-center max-[1039px]:my-0 max-[1039px]:grid-cols-4 max-[1039px]:self-start max-[560px]:grid-cols-2'>
             <button
               type='button'
-              onClick={() => void startCar()}
+              onClick={() => {
+                void startCar();
+              }}
               disabled={
                 isStarting ||
                 isRacing ||

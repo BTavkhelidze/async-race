@@ -1,9 +1,7 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import { useRaceStore } from '../../../../shared/model/race/race.store';
 import type { Car } from '../../api/garage-crud';
-import { carQueryKeys } from '../../cars-list/api/carQueryKeys';
-import { useSelectedCarStore } from '../../select-car/model/selected-car.store';
+import { useGarageUiStore } from '../../model/garage-ui.store';
 import { useDeleteCarMutation } from '../api/delete-car.mutation';
 
 type DeleteCarButtonProps = {
@@ -12,28 +10,31 @@ type DeleteCarButtonProps = {
 };
 
 function DeleteCarButton({ car, onDeleted }: DeleteCarButtonProps) {
-  const queryClient = useQueryClient();
-  const selectedCar = useSelectedCarStore((state) => state.selectedCar);
-  const clearSelectedCar = useSelectedCarStore(
-    (state) => state.clearSelectedCar,
+  const selectedCarId = useGarageUiStore(
+    (state) => state.updateForm.selectedCarId,
   );
+  const resetUpdateForm = useGarageUiStore((state) => state.resetUpdateForm);
   const isRaceRunning = useRaceStore((state) => state.isRaceRunning);
   const deleteCarMutation = useDeleteCarMutation();
 
   const handleDelete = () => {
     if (isRaceRunning) return;
 
+    const shouldDelete = window.confirm(`Delete ${car.name} from Garage?`);
+
+    if (!shouldDelete) return;
+
     deleteCarMutation.mutate(car.id, {
-      onSuccess: async () => {
-        if (selectedCar?.id === car.id) {
-          clearSelectedCar();
+      onSuccess: () => {
+        if (selectedCarId === car.id) {
+          resetUpdateForm();
         }
 
-        await queryClient.invalidateQueries({
-          queryKey: carQueryKeys.all,
-        });
         onDeleted?.();
         toast.success('Car deleted successfully');
+      },
+      onError: (error) => {
+        toast.error(error.message);
       },
     });
   };

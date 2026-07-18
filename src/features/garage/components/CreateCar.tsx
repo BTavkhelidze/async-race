@@ -1,8 +1,9 @@
-import { forwardRef } from 'react';
+import { forwardRef, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import type { SubmitHandler } from 'react-hook-form';
+import { toast } from 'react-toastify';
 import {
   carFormSchema,
   DEFAULT_CAR_COLOR,
@@ -10,8 +11,8 @@ import {
 } from '../../car-form/model/carForm.schema';
 import { useRaceStore } from '../../../shared/model/race/race.store';
 import { createCar } from '../api/garage-crud';
-import { toast } from 'react-toastify';
 import { carQueryKeys } from '../cars-list/api/carQueryKeys';
+import { useGarageUiStore } from '../model/garage-ui.store';
 
 const CREATE_CAR_NAME_ERROR_ID = 'create-car-name-error';
 const CREATE_CAR_COLOR_ERROR_ID = 'create-car-color-error';
@@ -19,6 +20,9 @@ const CREATE_CAR_COLOR_ERROR_ID = 'create-car-color-error';
 const CreateCar = forwardRef<HTMLInputElement>((_, ref) => {
   const queryClient = useQueryClient();
   const isRaceRunning = useRaceStore((state) => state.isRaceRunning);
+  const createForm = useGarageUiStore((state) => state.createForm);
+  const setCreateForm = useGarageUiStore((state) => state.setCreateForm);
+  const resetCreateForm = useGarageUiStore((state) => state.resetCreateForm);
   const {
     register,
     handleSubmit,
@@ -27,13 +31,18 @@ const CreateCar = forwardRef<HTMLInputElement>((_, ref) => {
     formState: { errors },
   } = useForm<CarFormValues>({
     resolver: zodResolver(carFormSchema),
-    defaultValues: {
-      name: '',
-      color: DEFAULT_CAR_COLOR,
-    },
+    defaultValues: createForm,
   });
   const nameInput = register('name');
+  const watchedName = watch('name');
   const selectedColor = watch('color', DEFAULT_CAR_COLOR);
+
+  useEffect(() => {
+    setCreateForm({
+      name: watchedName ?? '',
+      color: selectedColor ?? DEFAULT_CAR_COLOR,
+    });
+  }, [selectedColor, setCreateForm, watchedName]);
 
   const createCarMutation = useMutation({
     mutationFn: createCar,
@@ -46,6 +55,7 @@ const CreateCar = forwardRef<HTMLInputElement>((_, ref) => {
         name: '',
         color: DEFAULT_CAR_COLOR,
       });
+      resetCreateForm();
     },
   });
 

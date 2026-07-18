@@ -10,7 +10,7 @@ import type {
   WinnerPayload,
 } from '../types/winner.types';
 
-class WinnerNotFoundError extends Error {
+export class WinnerNotFoundError extends Error {
   constructor(id: number) {
     super(`Winner with id ${id} was not found`);
     this.name = 'WinnerNotFoundError';
@@ -27,13 +27,11 @@ const buildWinnerUrl = (path = '', params?: URLSearchParams): string => {
   return url.toString();
 };
 
-const normalizeRaceTime = (time: number): number => {
-  return Number(time.toFixed(2));
-};
+const normalizeRaceTime = (time: number): number => Number(time.toFixed(2));
 
-const isWinnerNotFoundError = (error: unknown): error is WinnerNotFoundError => {
-  return error instanceof WinnerNotFoundError;
-};
+export const isWinnerNotFoundError = (
+  error: unknown,
+): error is WinnerNotFoundError => error instanceof WinnerNotFoundError;
 
 export const getWinner = async (id: number): Promise<Winner> => {
   const response = await fetch(buildWinnerUrl(`/${id}`));
@@ -120,6 +118,10 @@ export const deleteWinner = async (id: number): Promise<void> => {
   const response = await fetch(buildWinnerUrl(`/${id}`), {
     method: 'DELETE',
   });
+
+  if (response.status === 404) {
+    throw new WinnerNotFoundError(id);
+  }
 
   await ensureSuccessfulResponse(
     response,

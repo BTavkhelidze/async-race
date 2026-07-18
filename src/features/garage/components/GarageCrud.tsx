@@ -27,6 +27,7 @@ export function GarageControls() {
           {selectedCar ? `Editing "${selectedCar.name}"` : 'No car selected'}
         </span>
         <button
+          type='button'
           //   onClick={0
           //     selectedCar ? () => setSelectedCar(null) : handleSelectMockCar
           //   }

@@ -1,20 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Pagination } from '../../../shared/ui/pagination';
 import { useWinners } from '../model/useWinners';
-import {
-  DEFAULT_WINNER_SORT_FIELD,
-  DEFAULT_WINNER_SORT_ORDER,
-  WINNERS_PER_PAGE,
-} from '../model/winners.constants';
+import { WINNERS_PER_PAGE } from '../model/winners.constants';
 import { WinnersTable } from '../components/WinnersTable';
-import type { WinnerSortField, WinnerSortState } from '../types/winner.types';
+import type { WinnerSortField } from '../types/winner.types';
+import { useWinnersUiStore } from '../model/winners-ui.store';
 
 export function WinnersPageContent() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [sortState, setSortState] = useState<WinnerSortState>({
-    sortField: DEFAULT_WINNER_SORT_FIELD,
-    sortOrder: DEFAULT_WINNER_SORT_ORDER,
-  });
+  const currentPage = useWinnersUiStore((state) => state.currentPage);
+  const setCurrentPage = useWinnersUiStore((state) => state.setCurrentPage);
+  const sortState = useWinnersUiStore((state) => state.sortState);
+  const setSortState = useWinnersUiStore((state) => state.setSortState);
   const { data, error, isError, isFetching, isPending } = useWinners(
     currentPage,
     WINNERS_PER_PAGE,
@@ -36,29 +32,27 @@ export function WinnersPageContent() {
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [currentPage, totalPages]);
+  }, [currentPage, setCurrentPage, totalPages]);
 
   const handleSortChange = (field: WinnerSortField) => {
     setCurrentPage(1);
-    setSortState((current) => {
-      if (current.sortField !== field) {
-        return {
-          sortField: field,
-          sortOrder: 'DESC',
-        };
-      }
-
-      return {
-        sortField: field,
-        sortOrder: current.sortOrder === 'DESC' ? 'ASC' : 'DESC',
-      };
-    });
+    setSortState(
+      sortState.sortField !== field
+        ? {
+            sortField: field,
+            sortOrder: 'DESC',
+          }
+        : {
+            sortField: field,
+            sortOrder: sortState.sortOrder === 'DESC' ? 'ASC' : 'DESC',
+          },
+    );
   };
 
   const handleWinnerDeleted = () => {
     if (winners.length !== 1 || currentPage === 1) return;
 
-    setCurrentPage((page) => Math.max(page - 1, 1));
+    setCurrentPage(Math.max(currentPage - 1, 1));
   };
 
   return (

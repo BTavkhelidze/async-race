@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import type { SubmitHandler } from 'react-hook-form';
 import { toast } from 'react-toastify';
@@ -11,7 +11,7 @@ import {
 } from '../../../car-form/model/carForm.schema';
 import { useRaceStore } from '../../../../shared/model/race/race.store';
 import { carQueryKeys } from '../../cars-list/api/carQueryKeys';
-import { useSelectedCarStore } from '../../select-car/model/selected-car.store';
+import { useGarageUiStore } from '../../model/garage-ui.store';
 import { useUpdateCarMutation } from '../api/update-car.mutation';
 
 const UPDATE_CAR_NAME_ERROR_ID = 'update-car-name-error';
@@ -19,11 +19,10 @@ const UPDATE_CAR_COLOR_ERROR_ID = 'update-car-color-error';
 
 function UpdateCar() {
   const queryClient = useQueryClient();
-  const selectedCar = useSelectedCarStore((state) => state.selectedCar);
-  const selectCar = useSelectedCarStore((state) => state.selectCar);
-  const clearSelectedCar = useSelectedCarStore(
-    (state) => state.clearSelectedCar,
-  );
+  const updateForm = useGarageUiStore((state) => state.updateForm);
+  const setUpdateForm = useGarageUiStore((state) => state.setUpdateForm);
+  const resetUpdateForm = useGarageUiStore((state) => state.resetUpdateForm);
+  const previousSelectedCarIdRef = useRef(updateForm.selectedCarId);
   const isRaceRunning = useRaceStore((state) => state.isRaceRunning);
   const {
     register,
@@ -34,13 +33,20 @@ function UpdateCar() {
   } = useForm<CarFormValues>({
     resolver: zodResolver(carFormSchema),
     defaultValues: {
-      name: '',
-      color: DEFAULT_CAR_COLOR,
+      name: updateForm.name,
+      color: updateForm.color,
     },
   });
   const updateCarMutation = useUpdateCarMutation();
   const isFormDisabled =
-    !selectedCar || updateCarMutation.isPending || isRaceRunning;
+    updateForm.selectedCarId === null ||
+    updateCarMutation.isPending ||
+    isRaceRunning;
+  const selectedName =
+    useWatch({
+      control,
+      name: 'name',
+    }) ?? '';
   const selectedColor =
     useWatch({
       control,
@@ -48,32 +54,33 @@ function UpdateCar() {
     }) ?? DEFAULT_CAR_COLOR;
 
   useEffect(() => {
-    if (!selectedCar) {
-      reset({
-        name: '',
-        color: DEFAULT_CAR_COLOR,
-      });
-      return;
-    }
+    if (previousSelectedCarIdRef.current === updateForm.selectedCarId) return;
 
+    previousSelectedCarIdRef.current = updateForm.selectedCarId;
     reset({
-      name: selectedCar.name,
-      color: selectedCar.color,
+      name: updateForm.name,
+      color: updateForm.color,
     });
-  }, [reset, selectedCar]);
+  }, [reset, updateForm.color, updateForm.name, updateForm.selectedCarId]);
+
+  useEffect(() => {
+    setUpdateForm({
+      name: selectedName,
+      color: selectedColor,
+    });
+  }, [selectedColor, selectedName, setUpdateForm]);
 
   const onSubmit: SubmitHandler<CarFormValues> = (data) => {
     if (isRaceRunning) return;
-    if (!selectedCar) return;
+    if (updateForm.selectedCarId === null) return;
 
     updateCarMutation.mutate(
       {
-        id: selectedCar.id,
+        id: updateForm.selectedCarId,
         payload: data,
       },
       {
-        onSuccess: async (updatedCar) => {
-          selectCar(updatedCar);
+        onSuccess: async () => {
           await queryClient.invalidateQueries({
             queryKey: carQueryKeys.all,
           });
@@ -81,7 +88,7 @@ function UpdateCar() {
             name: '',
             color: DEFAULT_CAR_COLOR,
           });
-          clearSelectedCar();
+          resetUpdateForm();
           toast.success('Car updated successfully');
         },
       },

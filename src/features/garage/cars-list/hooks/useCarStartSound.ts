@@ -37,9 +37,10 @@ export function useCarStartSound() {
     audio.currentTime = 0;
   }, []);
 
-  const waitForMinimumStartDuration = useCallback(() => {
-    return delay(MIN_ENGINE_START_DURATION_MS);
-  }, []);
+  const waitForMinimumStartDuration = useCallback(
+    () => delay(MIN_ENGINE_START_DURATION_MS),
+    [],
+  );
 
   const playStartSoundForMinimumDuration = useCallback(async () => {
     playStartSound();

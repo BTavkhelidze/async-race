@@ -31,9 +31,8 @@ type UseCarEngineStartParams = {
   onWaitForMinimumStartDuration: () => Promise<void>;
 };
 
-const getErrorMessage = (error: unknown, fallback: string): string => {
-  return error instanceof Error ? error.message : fallback;
-};
+const getErrorMessage = (error: unknown, fallback: string): string =>
+  error instanceof Error ? error.message : fallback;
 
 const detachAnimationHandlers = (animation: Animation): void => {
   animation.onfinish = null;
@@ -129,9 +128,10 @@ export function useCarEngineStart({
     animationRef.current = null;
   }, [carRef]);
 
-  const isCurrentRun = useCallback((runId: number) => {
-    return isMountedRef.current && activeRunIdRef.current === runId;
-  }, []);
+  const isCurrentRun = useCallback(
+    (runId: number) => isMountedRef.current && activeRunIdRef.current === runId,
+    [],
+  );
 
   const startCar = useCallback(
     async ({
@@ -312,29 +312,32 @@ export function useCarEngineStart({
     ],
   );
 
-  const stopCar = useCallback((playStopSound = false) => {
-    activeRunIdRef.current += 1;
-    resetCarPosition();
-    completeRegisteredRace();
-    setIsStarting(false);
-    setIsRacing(false);
-    setHasFinished(false);
-    setHasRaceStopped(false);
-    setHasDriveFailed(false);
-    setEngineError(null);
-    onStopStartSound();
-    if (playStopSound) {
-      onPlayStopSound();
-    } else {
-      onStopAllRaceSounds();
-    }
-  }, [
-    completeRegisteredRace,
-    onStopAllRaceSounds,
-    onPlayStopSound,
-    onStopStartSound,
-    resetCarPosition,
-  ]);
+  const stopCar = useCallback(
+    (playStopSound = false) => {
+      activeRunIdRef.current += 1;
+      resetCarPosition();
+      completeRegisteredRace();
+      setIsStarting(false);
+      setIsRacing(false);
+      setHasFinished(false);
+      setHasRaceStopped(false);
+      setHasDriveFailed(false);
+      setEngineError(null);
+      onStopStartSound();
+      if (playStopSound) {
+        onPlayStopSound();
+      } else {
+        onStopAllRaceSounds();
+      }
+    },
+    [
+      completeRegisteredRace,
+      onStopAllRaceSounds,
+      onPlayStopSound,
+      onStopStartSound,
+      resetCarPosition,
+    ],
+  );
 
   const stopCarAtCurrentPosition = useCallback(() => {
     activeRunIdRef.current += 1;
