@@ -1,6 +1,6 @@
 # Async Race
 
-**Self-assessment score: 215/400**
+**Self-assessment score: 345/400**
 
 **Deployed application:** `DEPLOYMENT_URL`
 
@@ -305,7 +305,7 @@ Only the frontend is deployed.
 
 The evaluator must run the original mock server locally before opening the deployed frontend.
 
-## Self-assessment Checklist — 215/400
+## Self-assessment Checklist — 345/400
 
 ### UI Deployment
 
@@ -319,7 +319,7 @@ The evaluator must run the original mock server locally before opening the deplo
 - [x] Include the self-assessment score.
 - [ ] Add the final deployment URL.
 
-## Basic Structure — 40/80
+## Basic Structure — 50/80
 
 - [x] **Two Views — 10 points**
   - Implement Garage and Winners.
@@ -330,7 +330,7 @@ The evaluator must run the original mock server locally before opening the deplo
   - Display race controls.
   - Display Garage cars.
 
-- [ ] **Winners View Content — 10 points**
+- [x] **Winners View Content — 10 points**
   - Display Winners title.
   - Display Winners table.
   - Display pagination.
@@ -374,15 +374,15 @@ The evaluator must run the original mock server locally before opening the deplo
 - [x] **Empty Garage Page — 10 extra points**
   - Move to the previous page after deleting the last car.
 
-## Winners View — 0/50
+## Winners View — 50/50
 
-- [ ] **Display Winners — 15 points**
+- [x] **Display Winners — 15 points**
   - Save and display winners.
 
-- [ ] **Pagination — 10 points**
+- [x] **Pagination — 10 points**
   - Display ten winners per page.
 
-- [ ] **Winners Table — 15 points**
+- [x] **Winners Table — 15 points**
   - Display number.
   - Display car image.
   - Display name.
@@ -391,13 +391,13 @@ The evaluator must run the original mock server locally before opening the deplo
   - Increment wins.
   - Update only faster times.
 
-- [ ] **Sorting — 10 points**
+- [x] **Sorting — 10 points**
   - Sort by wins.
   - Sort by time.
   - Support ascending order.
   - Support descending order.
 
-## Race — 100/170
+## Race — 170/170
 
 - [x] **Start Engine Animation — 20 points**
   - Start engine.
@@ -406,23 +406,23 @@ The evaluator must run the original mock server locally before opening the deplo
   - Send drive request.
   - Stop animation on failure.
 
-- [ ] **Stop Engine Animation — 20 points**
+- [x] **Stop Engine Animation — 20 points**
   - Stop engine.
   - Return car to start.
 
-- [ ] **Responsive Animation — 30 points**
+- [x] **Responsive Animation — 30 points**
   - Support responsive tracks.
   - Support screens down to 500px.
 
 - [x] **Start Race — 10 points**
   - Start all cars on the current page.
 
-- [ ] **Reset Race — 15 points**
+- [x] **Reset Race — 15 points**
   - Stop animations.
   - Return cars to start.
   - Clear winner.
 
-- [ ] **Winner Announcement — 5 points**
+- [x] **Winner Announcement — 5 points**
   - Display winner name.
   - Display winning time.
 
@@ -456,9 +456,9 @@ The evaluator must run the original mock server locally before opening the deplo
 ```text
 Project setup: In progress
 Garage: Partially implemented
-Race: Partially implemented
-Winners: Not implemented
+Race: Implemented
+Winners: Implemented
 Deployment: Not completed
-Self-assessment: 215/400
+Self-assessment: 345/400
 ```
 

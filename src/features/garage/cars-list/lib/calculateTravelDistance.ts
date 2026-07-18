@@ -1,7 +1,8 @@
 export function calculateTravelDistance(
   trackWidth: number,
   carWidth: number,
-  finishLineOffset: number,
+  finishLineWidth: number,
+  safeOffset: number,
 ): number {
-  return Math.max(trackWidth - finishLineOffset - carWidth, 0);
+  return Math.max(trackWidth - carWidth - finishLineWidth - safeOffset, 0);
 }

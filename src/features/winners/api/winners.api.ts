@@ -4,6 +4,8 @@ import {
 } from '../../garage/api/garage-crud';
 import type {
   CreateWinnerPayload,
+  GetWinnersParams,
+  GetWinnersResponse,
   Winner,
   WinnerPayload,
 } from '../types/winner.types';
@@ -15,8 +17,14 @@ class WinnerNotFoundError extends Error {
   }
 }
 
-const buildWinnerUrl = (path = ''): string => {
-  return new URL(`/winners${path}`, API_BASE_URL).toString();
+const buildWinnerUrl = (path = '', params?: URLSearchParams): string => {
+  const url = new URL(`/winners${path}`, API_BASE_URL);
+
+  if (params) {
+    url.search = params.toString();
+  }
+
+  return url.toString();
 };
 
 const normalizeRaceTime = (time: number): number => {
@@ -42,12 +50,34 @@ export const getWinner = async (id: number): Promise<Winner> => {
   return response.json() as Promise<Winner>;
 };
 
-export const getWinners = async (): Promise<Winner[]> => {
-  const response = await fetch(buildWinnerUrl());
+export const getWinners = async ({
+  page,
+  limit,
+  sort,
+  order,
+}: GetWinnersParams): Promise<GetWinnersResponse> => {
+  const queryParams = new URLSearchParams();
+  queryParams.set('_page', String(page));
+  queryParams.set('_limit', String(limit));
+  queryParams.set('_sort', sort);
+  queryParams.set('_order', order);
+
+  const response = await fetch(buildWinnerUrl('', queryParams));
 
   await ensureSuccessfulResponse(response, 'Failed to fetch winners');
 
-  return response.json() as Promise<Winner[]>;
+  const winners = (await response.json()) as Winner[];
+  const totalCountHeader = response.headers.get('X-Total-Count');
+  const parsedTotalCount =
+    totalCountHeader === null ? Number.NaN : Number(totalCountHeader);
+  const totalCount = Number.isNaN(parsedTotalCount)
+    ? winners.length
+    : parsedTotalCount;
+
+  return {
+    winners,
+    totalCount,
+  };
 };
 
 export const createWinner = async (
@@ -84,6 +114,17 @@ export const updateWinner = async (
   );
 
   return response.json() as Promise<Winner>;
+};
+
+export const deleteWinner = async (id: number): Promise<void> => {
+  const response = await fetch(buildWinnerUrl(`/${id}`), {
+    method: 'DELETE',
+  });
+
+  await ensureSuccessfulResponse(
+    response,
+    `Failed to delete winner with id ${id}`,
+  );
 };
 
 export const saveRaceWinner = async (

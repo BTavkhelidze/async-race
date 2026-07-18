@@ -204,8 +204,8 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
     currentPage > 1 && data?.cars.length === 1;
 
   return (
-    <section className='mt-5 rounded-xl border border-[#1F293A] bg-[#151C2C] p-5 shadow-lg'>
-      <div className='mb-4 flex items-center justify-between gap-4'>
+    <section className='mt-5 rounded-xl border border-[#1F293A] bg-[#151C2C] p-5 shadow-lg max-[1039px]:min-w-0 max-[1039px]:p-3'>
+      <div className='mb-4 flex items-center justify-between gap-4 max-[1039px]:min-w-0 max-[1039px]:flex-wrap'>
         <h3 className='text-lg font-semibold tracking-wide text-slate-200'>
           Cars
         </h3>
@@ -273,7 +273,7 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
               Reset
             </button>
           </div>
-          <ul className='space-y-1'>
+          <ul className='space-y-1 max-[1039px]:min-w-0'>
             {data.cars.map((car, index) => (
               <CarListItem
                 key={car.id}

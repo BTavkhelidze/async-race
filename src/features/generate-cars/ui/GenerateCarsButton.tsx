@@ -83,7 +83,7 @@ function GenerateCarsButton() {
   };
 
   return (
-    <div className='bg-[#151C2C] mt-5 border border-[#1F293A] p-5 rounded-xl shadow-lg'>
+    <div className='bg-[#151C2C] mt-5 border border-[#1F293A] p-5 rounded-xl shadow-lg max-[1039px]:w-full max-[1039px]:min-w-0 max-[1039px]:p-4'>
       <h3 className='text-lg font-semibold tracking-wide text-slate-200 mb-4'>
         Random Cars
       </h3>

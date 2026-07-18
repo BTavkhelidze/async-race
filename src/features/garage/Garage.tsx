@@ -6,12 +6,12 @@ import GenerateCarsButton from '../generate-cars/ui/GenerateCarsButton';
 
 function Garage() {
   return (
-    <div>
+    <div className='max-[1039px]:min-w-0'>
       <GarageHeader />
       {/* <GarageControls /> */}
-      <div className='flex flex-wrap gap-10'>
+      <div className='flex flex-wrap gap-10 max-[1039px]:min-w-0 max-[1039px]:gap-4'>
         <CreateCar />
-        <div className='flex flex-wrap items-end gap-4'>
+        <div className='flex flex-wrap items-end gap-4 max-[1039px]:min-w-0 max-[1039px]:flex-1'>
           <UpdateCar />
           <GenerateCarsButton />
         </div>
