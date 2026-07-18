@@ -26,6 +26,8 @@ type UseCarEngineStartParams = {
   onStopStartSound: () => void;
   onStartDrivingSound: () => void;
   onStopDrivingSound: () => void;
+  onPlayStopSound: () => void;
+  onStopAllRaceSounds: () => void;
   onWaitForMinimumStartDuration: () => Promise<void>;
 };
 
@@ -44,6 +46,8 @@ export function useCarEngineStart({
   onStopStartSound,
   onStartDrivingSound,
   onStopDrivingSound,
+  onPlayStopSound,
+  onStopAllRaceSounds,
   onWaitForMinimumStartDuration,
 }: UseCarEngineStartParams) {
   const [isStarting, setIsStarting] = useState(false);
@@ -199,6 +203,7 @@ export function useCarEngineStart({
           setHasFinished(true);
           if (playDrivingSound) {
             onStopDrivingSound();
+            onPlayStopSound();
           }
           onRaceFinish?.(carId, duration);
         };
@@ -262,13 +267,14 @@ export function useCarEngineStart({
       onStartDrivingSound,
       onStopStartSound,
       onStopDrivingSound,
+      onPlayStopSound,
       onWaitForMinimumStartDuration,
       registerRaceStart,
       trackRef,
     ],
   );
 
-  const stopCar = useCallback(() => {
+  const stopCar = useCallback((playStopSound = false) => {
     activeRunIdRef.current += 1;
     clearAnimation();
     resetCarPosition();
@@ -280,11 +286,16 @@ export function useCarEngineStart({
     setHasDriveFailed(false);
     setEngineError(null);
     onStopStartSound();
-    onStopDrivingSound();
+    if (playStopSound) {
+      onPlayStopSound();
+    } else {
+      onStopAllRaceSounds();
+    }
   }, [
     clearAnimation,
     completeRegisteredRace,
-    onStopDrivingSound,
+    onStopAllRaceSounds,
+    onPlayStopSound,
     onStopStartSound,
     resetCarPosition,
   ]);
@@ -317,12 +328,12 @@ export function useCarEngineStart({
       clearAnimation();
       completeRegisteredRace();
       onStopStartSound();
-      onStopDrivingSound();
+      onStopAllRaceSounds();
     };
   }, [
     clearAnimation,
     completeRegisteredRace,
-    onStopDrivingSound,
+    onStopAllRaceSounds,
     onStopStartSound,
   ]);
 

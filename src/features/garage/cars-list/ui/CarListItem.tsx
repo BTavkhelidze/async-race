@@ -51,7 +51,12 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
     const carRef = useRef<SVGSVGElement | null>(null);
     const { playStartSound, stopStartSound, waitForMinimumStartDuration } =
       useCarStartSound();
-    const { playDrivingSound, stopDrivingSound } = useRaceDrivingSound();
+    const {
+      playDrivingSound,
+      stopDrivingSound,
+      playStopSound,
+      stopAllRaceSounds,
+    } = useRaceDrivingSound();
 
     const {
       isStarting,
@@ -81,6 +86,8 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
       onStopStartSound: stopStartSound,
       onStartDrivingSound: playDrivingSound,
       onStopDrivingSound: stopDrivingSound,
+      onPlayStopSound: playStopSound,
+      onStopAllRaceSounds: stopAllRaceSounds,
       onWaitForMinimumStartDuration: waitForMinimumStartDuration,
     });
     const statusText = isStarting
@@ -111,7 +118,7 @@ const CarListItem = forwardRef<CarListItemHandle, CarListItemProps>(
     );
 
     const stopRace = useCallback(() => {
-      stopCar();
+      stopCar(true);
     }, [stopCar]);
 
     const stopRaceAtCurrentPosition = useCallback(() => {

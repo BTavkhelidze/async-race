@@ -50,7 +50,8 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
   } = useCarStartSound();
   const {
     playDrivingSound: playRaceAllDrivingSound,
-    stopDrivingSound: stopRaceAllDrivingSound,
+    playStopSound: playRaceAllStopSound,
+    stopAllRaceSounds,
   } = useRaceDrivingSound();
 
   const playRaceAllSound = () => {
@@ -88,7 +89,7 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
     hasRaceAllDrivingSoundStartedRef.current = false;
     setWinnerPopup(null);
     stopRaceAllStartSound();
-    stopRaceAllDrivingSound();
+    stopAllRaceSounds();
     carRefs.current.forEach((carRef) => {
       carRef?.resetRace();
     });
@@ -111,7 +112,7 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
     isRaceAllActiveRef.current = false;
     hasRaceAllFinishRef.current = false;
     hasRaceAllDrivingSoundStartedRef.current = false;
-    stopRaceAllDrivingSound();
+    stopAllRaceSounds();
     carRefs.current = [];
     setCarsNeedingReset(new Set());
     setHasRaceStarted(false);
@@ -141,7 +142,7 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
     hasRaceAllFinishRef.current = true;
     isRaceAllActiveRef.current = false;
     hasRaceAllDrivingSoundStartedRef.current = false;
-    stopRaceAllDrivingSound();
+    playRaceAllStopSound();
     setHasRaceStarted(true);
     setWinnerPopup({
       carName: winner.carName,
@@ -153,7 +154,7 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
 
       carRef.stopRaceAtCurrentPosition();
     });
-  }, [stopRaceAllDrivingSound]);
+  }, [playRaceAllStopSound]);
 
   const handleRaceDriveStart = useCallback(() => {
     if (
@@ -185,8 +186,8 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
 
     isRaceAllActiveRef.current = false;
     hasRaceAllDrivingSoundStartedRef.current = false;
-    stopRaceAllDrivingSound();
-  }, [isRaceRunning, stopRaceAllDrivingSound]);
+    stopAllRaceSounds();
+  }, [isRaceRunning, stopAllRaceSounds]);
 
   const shouldMoveToPreviousPageAfterDelete =
     currentPage > 1 && data?.cars.length === 1;
