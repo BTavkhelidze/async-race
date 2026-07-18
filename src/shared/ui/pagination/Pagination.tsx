@@ -5,6 +5,7 @@ type PaginationProps = {
   totalPages: number;
   onPageChange: (page: number) => void;
   disabled?: boolean;
+  alwaysVisible?: boolean;
 };
 
 const PAGINATION_BUTTON_CLASS =
@@ -15,7 +16,10 @@ export function Pagination({
   totalPages,
   onPageChange,
   disabled = false,
+  alwaysVisible = false,
 }: PaginationProps) {
+  if (!alwaysVisible && totalPages <= 1) return null;
+
   const pageNumbers = Array.from(
     { length: Math.max(totalPages, 1) },
     (_, index) => index + 1,

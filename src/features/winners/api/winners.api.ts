@@ -53,10 +53,14 @@ export const getWinner = async (id: number): Promise<Winner> => {
 export const getWinners = async ({
   page,
   limit,
+  sort,
+  order,
 }: GetWinnersParams): Promise<GetWinnersResponse> => {
   const queryParams = new URLSearchParams();
   queryParams.set('_page', String(page));
   queryParams.set('_limit', String(limit));
+  queryParams.set('_sort', sort);
+  queryParams.set('_order', order);
 
   const response = await fetch(buildWinnerUrl('', queryParams));
 
@@ -110,6 +114,17 @@ export const updateWinner = async (
   );
 
   return response.json() as Promise<Winner>;
+};
+
+export const deleteWinner = async (id: number): Promise<void> => {
+  const response = await fetch(buildWinnerUrl(`/${id}`), {
+    method: 'DELETE',
+  });
+
+  await ensureSuccessfulResponse(
+    response,
+    `Failed to delete winner with id ${id}`,
+  );
 };
 
 export const saveRaceWinner = async (

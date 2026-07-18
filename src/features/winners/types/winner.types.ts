@@ -6,9 +6,20 @@ export type Winner = {
   time: number;
 };
 
+export type WinnerSortField = 'wins' | 'time';
+
+export type SortOrder = 'ASC' | 'DESC';
+
+export type WinnerSortState = {
+  sortField: WinnerSortField;
+  sortOrder: SortOrder;
+};
+
 export type GetWinnersParams = {
   page: number;
   limit: number;
+  sort: WinnerSortField;
+  order: SortOrder;
 };
 
 export type GetWinnersResponse = {
