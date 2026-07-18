@@ -1,6 +1,6 @@
 # Async Race
 
-**Self-assessment score: 0/400**
+**Self-assessment score: 215/400**
 
 **Deployed application:** `DEPLOYMENT_URL`
 
@@ -305,7 +305,7 @@ Only the frontend is deployed.
 
 The evaluator must run the original mock server locally before opening the deployed frontend.
 
-## Self-assessment Checklist — 0/400
+## Self-assessment Checklist — 215/400
 
 ### UI Deployment
 
@@ -314,17 +314,17 @@ The evaluator must run the original mock server locally before opening the deplo
 
 ### Commits and Repository
 
-- [ ] Follow Conventional Commits.
+- [x] Follow Conventional Commits.
 - [x] Include the checklist in README.
 - [x] Include the self-assessment score.
 - [ ] Add the final deployment URL.
 
-## Basic Structure — 0/80
+## Basic Structure — 40/80
 
-- [ ] **Two Views — 10 points**
+- [x] **Two Views — 10 points**
   - Implement Garage and Winners.
 
-- [ ] **Garage View Content — 30 points**
+- [x] **Garage View Content — 30 points**
   - Display Garage title.
   - Display creation and editing controls.
   - Display race controls.
@@ -342,7 +342,7 @@ The evaluator must run the original mock server locally before opening the deplo
   - Preserve edit form values.
   - Preserve sorting state.
 
-## Garage View — 0/90
+## Garage View — 70/90
 
 - [ ] **CRUD Operations — 20 points**
   - Create cars.
@@ -351,27 +351,27 @@ The evaluator must run the original mock server locally before opening the deplo
   - Validate names.
   - Delete related winner records.
 
-- [ ] **Color Selection — 10 points**
+- [x] **Color Selection — 10 points**
   - Select car color.
   - Apply color to car image.
 
-- [ ] **Random Car Creation — 20 points**
+- [x] **Random Car Creation — 20 points**
   - Generate 100 cars.
   - Use at least 10 brands.
   - Use at least 10 models.
   - Generate random colors.
 
-- [ ] **Car Management Buttons — 10 points**
+- [x] **Car Management Buttons — 10 points**
   - Add Select button.
   - Add Delete button.
 
-- [ ] **Pagination — 10 points**
+- [x] **Pagination — 10 points**
   - Display seven cars per page.
 
-- [ ] **Empty Garage — 10 extra points**
+- [x] **Empty Garage — 10 extra points**
   - Show a user-friendly message.
 
-- [ ] **Empty Garage Page — 10 extra points**
+- [x] **Empty Garage Page — 10 extra points**
   - Move to the previous page after deleting the last car.
 
 ## Winners View — 0/50
@@ -397,7 +397,7 @@ The evaluator must run the original mock server locally before opening the deplo
   - Support ascending order.
   - Support descending order.
 
-## Race — 0/170
+## Race — 100/170
 
 - [x] **Start Engine Animation — 20 points**
   - Start engine.
@@ -414,7 +414,7 @@ The evaluator must run the original mock server locally before opening the deplo
   - Support responsive tracks.
   - Support screens down to 500px.
 
-- [ ] **Start Race — 10 points**
+- [x] **Start Race — 10 points**
   - Start all cars on the current page.
 
 - [ ] **Reset Race — 15 points**
@@ -426,12 +426,12 @@ The evaluator must run the original mock server locally before opening the deplo
   - Display winner name.
   - Display winning time.
 
-- [ ] **Button States — 20 points**
+- [x] **Button States — 20 points**
   - Disable invalid actions.
   - Prevent duplicate starts.
   - Show loading states.
 
-- [ ] **Actions During Race — 50 points**
+- [x] **Actions During Race — 50 points**
   - Handle create action.
   - Handle update action.
   - Handle delete action.
@@ -439,9 +439,9 @@ The evaluator must run the original mock server locally before opening the deplo
   - Handle pagination.
   - Handle view navigation.
 
-## Prettier and ESLint — 0/10
+## Prettier and ESLint — 5/10
 
-- [ ] **Prettier — 5 points**
+- [x] **Prettier — 5 points**
   - Configure `format`.
   - Configure `ci:format`.
 
@@ -455,9 +455,10 @@ The evaluator must run the original mock server locally before opening the deplo
 
 ```text
 Project setup: In progress
-Garage: Not implemented
-Race: Not implemented
+Garage: Partially implemented
+Race: Partially implemented
 Winners: Not implemented
 Deployment: Not completed
-Self-assessment: 0/400
+Self-assessment: 215/400
 ```
+
