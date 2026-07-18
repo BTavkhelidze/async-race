@@ -6,7 +6,7 @@ import { cn } from '../../lib/utils';
 function Sidebar() {
   const links = [
     { name: 'Garage', Icon: GarageIcon, link: '/garage' },
-    { name: 'Race', Icon: RaceIcon, link: '/winners' },
+    { name: 'Winners', Icon: RaceIcon, link: '/winners' },
   ];
 
   return (
