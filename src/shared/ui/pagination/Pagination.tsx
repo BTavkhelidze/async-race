@@ -16,10 +16,8 @@ export function Pagination({
   onPageChange,
   disabled = false,
 }: PaginationProps) {
-  if (totalPages <= 1) return null;
-
   const pageNumbers = Array.from(
-    { length: totalPages },
+    { length: Math.max(totalPages, 1) },
     (_, index) => index + 1,
   );
   const isFirstPage = currentPage === 1;

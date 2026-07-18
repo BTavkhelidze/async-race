@@ -3,13 +3,13 @@ import type { WinnerWithCar } from '../types/winner.types';
 
 type WinnersTableRowProps = {
   winner: WinnerWithCar;
-  index: number;
+  position: number;
 };
 
-export function WinnersTableRow({ winner, index }: WinnersTableRowProps) {
+export function WinnersTableRow({ winner, position }: WinnersTableRowProps) {
   return (
     <tr className='border-b border-[#1F293A] last:border-b-0'>
-      <td className='px-4 py-3 text-sm text-slate-400'>{index + 1}</td>
+      <td className='px-4 py-3 text-sm text-slate-400'>{position}</td>
       <td className='px-4 py-3'>
         <RaceCar
           aria-label={`${winner.car.name} car`}

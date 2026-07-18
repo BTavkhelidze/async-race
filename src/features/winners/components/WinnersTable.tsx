@@ -3,9 +3,10 @@ import { WinnersTableRow } from './WinnersTableRow';
 
 type WinnersTableProps = {
   winners: WinnerWithCar[];
+  startIndex: number;
 };
 
-export function WinnersTable({ winners }: WinnersTableProps) {
+export function WinnersTable({ winners, startIndex }: WinnersTableProps) {
   return (
     <div className='overflow-hidden rounded-lg border border-[#1F293A] bg-[#0A0E17]'>
       <div className='overflow-x-auto'>
@@ -24,7 +25,7 @@ export function WinnersTable({ winners }: WinnersTableProps) {
               <WinnersTableRow
                 key={winner.id}
                 winner={winner}
-                index={index}
+                position={startIndex + index + 1}
               />
             ))}
           </tbody>
