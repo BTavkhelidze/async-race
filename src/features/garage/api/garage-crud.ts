@@ -1,4 +1,5 @@
-export const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL);
+import { API_BASE_URL, apiFetch } from '../../../shared/lib/api-client';
+export { API_BASE_URL } from '../../../shared/lib/api-client';
 
 export type Car = {
   id: number;
@@ -62,7 +63,7 @@ export const getCars = async (
     queryParams.set('_limit', String(params.limit));
   }
 
-  const response = await fetch(buildGarageUrl('', queryParams));
+  const response = await apiFetch(buildGarageUrl('', queryParams));
 
   await ensureSuccessfulResponse(response, 'Failed to fetch cars');
 
@@ -81,7 +82,7 @@ export const getCars = async (
 };
 
 export const getCarById = async (id: number): Promise<Car> => {
-  const response = await fetch(buildGarageUrl(`/${id}`));
+  const response = await apiFetch(buildGarageUrl(`/${id}`));
 
   await ensureSuccessfulResponse(response, `Failed to fetch car with id ${id}`);
 
@@ -89,7 +90,7 @@ export const getCarById = async (id: number): Promise<Car> => {
 };
 
 export const createCar = async (payload: CarPayload): Promise<Car> => {
-  const response = await fetch(buildGarageUrl(), {
+  const response = await apiFetch(buildGarageUrl(), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -106,7 +107,7 @@ export const updateCar = async (
   id: number,
   payload: CarPayload,
 ): Promise<Car> => {
-  const response = await fetch(buildGarageUrl(`/${id}`), {
+  const response = await apiFetch(buildGarageUrl(`/${id}`), {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -123,7 +124,7 @@ export const updateCar = async (
 };
 
 export const deleteCar = async (id: number): Promise<void> => {
-  const response = await fetch(buildGarageUrl(`/${id}`), {
+  const response = await apiFetch(buildGarageUrl(`/${id}`), {
     method: 'DELETE',
   });
 

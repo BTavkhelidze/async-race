@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pagination } from '../../../shared/ui/pagination';
+import ApiErrorMessage from '../../../shared/ui/api-error/ApiErrorMessage';
 import { useRaceStore } from '../../../shared/model/race/race.store';
 import { useCarsQuery } from '../cars-list/api/useCarsQuery';
 import { useCarStartSound } from '../cars-list/hooks/useCarStartSound';
@@ -249,11 +250,7 @@ function CarList({ onGenerateCarsClick, isGenerateCarsPending }: CarListProps) {
 
       {isPending && <p className='text-sm text-slate-400'>Loading cars...</p>}
 
-      {isError && (
-        <p role='alert' className='text-sm text-red-400'>
-          {error.message}
-        </p>
-      )}
+      {isError && <ApiErrorMessage error={error} />}
 
       {!isPending && !isError && data.cars.length === 0 && (
         <EmptyGarageState

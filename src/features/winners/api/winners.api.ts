@@ -1,7 +1,7 @@
 import {
-  API_BASE_URL,
   ensureSuccessfulResponse,
 } from '../../garage/api/garage-crud';
+import { API_BASE_URL, apiFetch } from '../../../shared/lib/api-client';
 import type {
   CreateWinnerPayload,
   GetWinnersParams,
@@ -34,7 +34,7 @@ export const isWinnerNotFoundError = (
 ): error is WinnerNotFoundError => error instanceof WinnerNotFoundError;
 
 export const getWinner = async (id: number): Promise<Winner> => {
-  const response = await fetch(buildWinnerUrl(`/${id}`));
+  const response = await apiFetch(buildWinnerUrl(`/${id}`));
 
   if (response.status === 404) {
     throw new WinnerNotFoundError(id);
@@ -60,7 +60,7 @@ export const getWinners = async ({
   queryParams.set('_sort', sort);
   queryParams.set('_order', order);
 
-  const response = await fetch(buildWinnerUrl('', queryParams));
+  const response = await apiFetch(buildWinnerUrl('', queryParams));
 
   await ensureSuccessfulResponse(response, 'Failed to fetch winners');
 
@@ -81,7 +81,7 @@ export const getWinners = async ({
 export const createWinner = async (
   winner: CreateWinnerPayload,
 ): Promise<Winner> => {
-  const response = await fetch(buildWinnerUrl(), {
+  const response = await apiFetch(buildWinnerUrl(), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -98,7 +98,7 @@ export const updateWinner = async (
   id: number,
   payload: WinnerPayload,
 ): Promise<Winner> => {
-  const response = await fetch(buildWinnerUrl(`/${id}`), {
+  const response = await apiFetch(buildWinnerUrl(`/${id}`), {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -115,7 +115,7 @@ export const updateWinner = async (
 };
 
 export const deleteWinner = async (id: number): Promise<void> => {
-  const response = await fetch(buildWinnerUrl(`/${id}`), {
+  const response = await apiFetch(buildWinnerUrl(`/${id}`), {
     method: 'DELETE',
   });
 

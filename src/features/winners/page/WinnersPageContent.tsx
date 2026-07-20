@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Pagination } from '../../../shared/ui/pagination';
+import ApiErrorMessage from '../../../shared/ui/api-error/ApiErrorMessage';
 import { useWinners } from '../model/useWinners';
 import { WINNERS_PER_PAGE } from '../model/winners.constants';
 import { WinnersTable } from '../components/WinnersTable';
@@ -67,11 +68,7 @@ export function WinnersPageContent() {
         <p className='text-sm text-slate-400'>Loading winners...</p>
       )}
 
-      {isError && (
-        <p role='alert' className='text-sm text-red-400'>
-          {error.message}
-        </p>
-      )}
+      {isError && <ApiErrorMessage error={error} />}
 
       {shouldShowContent && winners.length === 0 && (
         <p className='text-sm text-slate-400'>

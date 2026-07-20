@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../../api/garage-crud';
+import { API_BASE_URL, apiFetch } from '../../../../shared/lib/api-client';
 import type {
   DriveResponse,
   EngineStartedResponse,
@@ -49,7 +49,7 @@ const buildEngineUrl = (carId: number, status: EngineStatus): string => {
 export const startEngine = async (
   carId: number,
 ): Promise<EngineStartedResponse> => {
-  const response = await fetch(buildEngineUrl(carId, 'started'), {
+  const response = await apiFetch(buildEngineUrl(carId, 'started'), {
     method: 'PATCH',
   });
 
@@ -62,7 +62,7 @@ export const startEngine = async (
 };
 
 export const driveCar = async (carId: number): Promise<DriveResponse> => {
-  const response = await fetch(buildEngineUrl(carId, 'drive'), {
+  const response = await apiFetch(buildEngineUrl(carId, 'drive'), {
     method: 'PATCH',
   });
 
