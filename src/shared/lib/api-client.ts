@@ -4,6 +4,8 @@ export const MOCK_SERVER_REPOSITORY_URL =
   'https://github.com/mikhama/async-race-api';
 
 export class MockServerConnectionError extends Error {
+  readonly isMockServerConnectionError = true;
+
   constructor() {
     super(
       `Cannot connect to the Async Race mock server at ${API_BASE_URL}. Run the server locally to fetch data. Setup instructions: ${MOCK_SERVER_REPOSITORY_URL}`,
@@ -19,7 +21,7 @@ export const isMockServerConnectionError = (
   (error instanceof Error && error.name === 'MockServerConnectionError');
 
 const isFetchNetworkError = (error: unknown): error is TypeError =>
-  error instanceof TypeError && error.message.toLowerCase().includes('fetch');
+  error instanceof TypeError;
 
 export const apiFetch = async (
   input: RequestInfo | URL,
